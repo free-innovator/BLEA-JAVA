@@ -61,9 +61,12 @@ public class ConsentActivity extends Activity {
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED){
                     mSwitchPermission.setChecked(true);
                     mSwitchPermission.setEnabled(false);
+                    Log.d("ConsentActivity", "onRequestPermissionsResult - setChecked(true)");
                 }else{
                     mSwitchPermission.setChecked(false);
+                    Log.d("ConsentActivity", "onRequestPermissionsResult - setChecked(false)");
                 }
+                checkSwitch();
                 return;
             }
         }
@@ -71,7 +74,7 @@ public class ConsentActivity extends Activity {
 
     private void checkSwitch(){
         if(mSwitchBluetooth.isChecked() && mSwitchGPS.isChecked() && mSwitchPermission.isChecked()){
-            Intent i = new Intent(ConsentActivity.this, MainActivity.class);
+            Intent i = new Intent(ConsentActivity.this, PlayActivity.class);
             startActivity(i);
             overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
             finish();
@@ -80,50 +83,52 @@ public class ConsentActivity extends Activity {
     private class MyOnCheckedChangeListener implements CompoundButton.OnCheckedChangeListener{
         @Override
         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-            if(buttonView.equals(findViewById(R.id.swicth_bluetooth))) {
-                Log.i("onCheckedChanged", "bluetooth check = " + isChecked);
+            switch(buttonView.getId()){
+                case R.id.swicth_bluetooth:
+                    Log.i("onCheckedChanged", "bluetooth check = " + isChecked);
 
-                if(!MyBluetoothManager.isEnabled()){
-                    MyBluetoothManager.initSetting(thisActivity);
-                }
+                    if(!MyBluetoothManager.isEnabled()){
+                        MyBluetoothManager.initSetting(thisActivity);
+                    }
 
-                if (isChecked) {
-                    if (!MyBluetoothManager.enable())
-                        buttonView.setChecked(false);
-                } else {
-                    if (!MyBluetoothManager.disable())
-                        buttonView.setChecked(true);
-                }
-            }
+                    if (isChecked) {
+                        if (!MyBluetoothManager.enable())
+                            buttonView.setChecked(false);
+                    } else {
+                        if (!MyBluetoothManager.disable())
+                            buttonView.setChecked(true);
+                    }
+                    break;
 
-            if(buttonView.equals(findViewById(R.id.swicth_gps))) {
-                Log.i("onCheckedChanged", "GPS check = " + isChecked);
-            }
+                case R.id.swicth_gps:
+                    Log.i("onCheckedChanged", "GPS check = " + isChecked);
+                    break;
 
-            if(buttonView.equals(findViewById(R.id.swicth_permission))){
-                Log.i("onCheckedChanged", "Permission check = " + isChecked);
+                case R.id.swicth_permission:
+                    Log.i("onCheckedChanged", "Permission check = " + isChecked);
 
-                if(isChecked){
-                    if(ContextCompat.checkSelfPermission(thisActivity, Manifest.permission.ACCESS_FINE_LOCATION)
-                            != PackageManager.PERMISSION_GRANTED){
-
-                        if(ActivityCompat.shouldShowRequestPermissionRationale(thisActivity,
-                                Manifest.permission.ACCESS_FINE_LOCATION)){
-                            Toast.makeText(thisActivity, "권한을 설정하지 않으면 앱을 사용할 수 없습니다.",
-                                    Toast.LENGTH_LONG).show();
-                            ActivityCompat.requestPermissions(
-                                    thisActivity,
-                                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                                    MY_PERMISSIONS_REQUEST);
-                        }
-                        else{
-                            ActivityCompat.requestPermissions(
-                                    thisActivity,
-                                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                                    MY_PERMISSIONS_REQUEST);
+                    if(isChecked){
+                        if(ContextCompat.checkSelfPermission(thisActivity, Manifest.permission.ACCESS_FINE_LOCATION)
+                                != PackageManager.PERMISSION_GRANTED){
+                            mSwitchPermission.setChecked(false);
+                            if(ActivityCompat.shouldShowRequestPermissionRationale(thisActivity,
+                                    Manifest.permission.ACCESS_FINE_LOCATION)){
+                                Toast.makeText(thisActivity, "권한을 설정하지 않으면 앱을 사용할 수 없습니다.",
+                                        Toast.LENGTH_LONG).show();
+                                ActivityCompat.requestPermissions(
+                                        thisActivity,
+                                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                                        MY_PERMISSIONS_REQUEST);
+                            }
+                            else{
+                                ActivityCompat.requestPermissions(
+                                        thisActivity,
+                                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                                        MY_PERMISSIONS_REQUEST);
+                            }
                         }
                     }
-                }
+                    break;
             }
 
             checkSwitch();
