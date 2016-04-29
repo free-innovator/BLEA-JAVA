@@ -13,6 +13,8 @@ import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import com.practice.myapplication.R;
+import com.practice.myapplication.data.ClubData;
+import com.practice.myapplication.manager.MyDBManager;
 
 import java.util.ArrayList;
 
@@ -32,20 +34,9 @@ public class ClubFragment extends Fragment {
         /**
          * reference : http://kd3302.tistory.com/85
          */
-        mAdapter = new CustomAdapter();
+        mAdapter = new CustomAdapter(MyDBManager.getClubList(getActivity()));
         mListView = (ListView) v.findViewById(R.id.lv_fclub_list);
         mListView.setAdapter(mAdapter);
-
-        mAdapter.add("aaa");
-        mAdapter.add("bbb");
-        mAdapter.add("ccc");
-        mAdapter.add("ddd");
-        mAdapter.add("eee");
-        mAdapter.add("fff");
-        mAdapter.add("ggg");
-        mAdapter.add("hhh");
-        mAdapter.add("iii");
-        mAdapter.add("jjj");
 
         return v;
     }
@@ -54,12 +45,10 @@ public class ClubFragment extends Fragment {
      * reference : http://berabue.blogspot.kr/2014/05/android-listview.html
      */
     private class CustomAdapter extends BaseAdapter {
-        private ArrayList<String> mList;
+        private ArrayList<ClubData> mList;
 
-        private CustomAdapter(){
-            mList = new ArrayList<String>();
-        }
-        private CustomAdapter(ArrayList<String> list){
+        private CustomAdapter(){  mList = new ArrayList<ClubData>();  }
+        private CustomAdapter(ArrayList<ClubData> list){
             mList = list;
         }
 
@@ -106,8 +95,9 @@ public class ClubFragment extends Fragment {
                 rightTextView = holder.mRightTextView;
             }
 
-            leftTextView.setText(mList.get(pos));
-            rightTextView.setText(mList.get(pos));
+            ClubData clubData = mList.get(pos);
+            leftTextView.setText(clubData.getName());
+            rightTextView.setText(String.valueOf(clubData.getMeter()));
 
             convertView.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -124,13 +114,6 @@ public class ClubFragment extends Fragment {
             });
 
             return convertView;
-        }
-
-        public void add(String _msg){
-            mList.add(_msg);
-        }
-        public void remove(int _position){
-            mList.remove(_position);
         }
 
         private class CustomHolder{
