@@ -99,7 +99,7 @@ public class MainActivity extends FragmentActivity {
                         case R.id.fl_am_btn5:
                             switch (action){
                                 case MotionEvent.ACTION_DOWN:
-                                    v.setBackgroundColor(Color.rgb(0, 0, 0));
+                                    //v.setBackgroundColor(Color.rgb(0, 0, 0));
                                     switch(v.getId()){
                                         case R.id.fl_am_btn1:
                                             fragmentReplace(FRAG_NUM.MAIN);
@@ -119,7 +119,7 @@ public class MainActivity extends FragmentActivity {
                                     }
                                     return true;
                                 case MotionEvent.ACTION_UP:
-                                    v.setBackgroundColor(Color.rgb(237, 237, 237));
+                                    //v.setBackgroundColor(Color.rgb(237, 237, 237));
                                     return true;
                             }
                     }

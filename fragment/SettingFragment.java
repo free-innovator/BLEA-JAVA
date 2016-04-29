@@ -3,6 +3,7 @@ package com.practice.myapplication.fragment;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.text.InputType;
@@ -30,6 +31,10 @@ public class SettingFragment extends Fragment {
     private CustomAdapter mAdapter1;
     private CustomAdapter mAdapter2;
 
+    private final String STR_PREFERENCES_NAME = "Setting";
+    private final String STR_METER_YARD = "METER_YARD";
+    private final String STR_DB_SAVE_LOCATION = "DB_SAVE_LOCATION";
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState){
@@ -44,11 +49,22 @@ public class SettingFragment extends Fragment {
         spinner1.setAdapter(mAdapter1);
         spinner2.setAdapter(mAdapter2);
 
-        /*
+        final SharedPreferences prefs =
+                getActivity().getSharedPreferences(STR_PREFERENCES_NAME, Context.MODE_PRIVATE);
+        if(prefs != null){
+            int i = prefs.getInt(STR_METER_YARD, -1);
+            if(i != -1) spinner1.setSelection(i);
+            i = prefs.getInt(STR_DB_SAVE_LOCATION, -1);
+            if(i != -1) spinner2.setSelection(i);
+        }
+
+
         spinner1.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                spinner1.setPrompt((String)spinner1.getAdapter().getItem(position));
+                SharedPreferences.Editor editor = prefs.edit();
+                editor.putInt(STR_METER_YARD, position);
+                editor.commit();
             }
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
@@ -57,13 +73,14 @@ public class SettingFragment extends Fragment {
         spinner2.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                spinner2.setPrompt((String)spinner2.getAdapter().getItem(position));
+                SharedPreferences.Editor editor = prefs.edit();
+                editor.putInt(STR_DB_SAVE_LOCATION, position);
+                editor.commit();
             }
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
             }
         });
-        */
 
         return v;
     }
