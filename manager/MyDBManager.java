@@ -56,39 +56,39 @@ public class MyDBManager {
         }
         super.finalize();
     }
-}
 
-class ClubDbHelper extends SQLiteOpenHelper{
-    private static final String SQL_CREATE_ENTRIES =
-            "CREATE TABLE "+ClubData.TABLE_NAME+"(" +
-                    "_id integer auto_increment," +
-                    ClubData.COLUMN_NAME_NAME + " varchar(20) not null," +
-                    ClubData.COLUMN_NAME_METER + " integer," +
-                    "primary key(_id)" +
-                    ")";
-    private static final String SQL_DELETE_ENTRIES =
-            "DROP TABLE IF EXISTS tbl_club";
+    private static class ClubDbHelper extends SQLiteOpenHelper{
+        private static final String SQL_CREATE_ENTRIES =
+                "CREATE TABLE "+ClubData.TABLE_NAME+"(" +
+                        "_id integer auto_increment," +
+                        ClubData.COLUMN_NAME_NAME + " varchar(20) not null," +
+                        ClubData.COLUMN_NAME_METER + " integer," +
+                        "primary key(_id)" +
+                        ")";
+        private static final String SQL_DELETE_ENTRIES =
+                "DROP TABLE IF EXISTS tbl_club";
 
-    public static final int DATABASE_VERSION = 1;
-    public static final String DATABASE_NAME = "Club.db";
+        public static final int DATABASE_VERSION = 1;
+        public static final String DATABASE_NAME = "Club.db";
 
-    public ClubDbHelper(Context context){
-        super(context, DATABASE_NAME, null, DATABASE_VERSION);
-    }
-    public void onCreate(SQLiteDatabase db){
-        db.execSQL(SQL_CREATE_ENTRIES);
-        db.execSQL("insert into tbl_club("+ClubData.COLUMN_NAME_NAME+", "+ClubData.COLUMN_NAME_METER+") values" +
-                "('1st', null)," +
-                "('2st', null)," +
-                "('3st', null)," +
-                "('4st', null)," +
-                "('5st', null)");
-    }
-    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion){
-        db.execSQL(SQL_DELETE_ENTRIES);
-        onCreate(db);
-    }
-    public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion){
-        onUpgrade(db, oldVersion, newVersion);
+        public ClubDbHelper(Context context){
+            super(context, DATABASE_NAME, null, DATABASE_VERSION);
+        }
+        public void onCreate(SQLiteDatabase db){
+            db.execSQL(SQL_CREATE_ENTRIES);
+            db.execSQL("insert into tbl_club("+ClubData.COLUMN_NAME_NAME+", "+ClubData.COLUMN_NAME_METER+") values" +
+                    "('1st', null)," +
+                    "('2st', null)," +
+                    "('3st', null)," +
+                    "('4st', null)," +
+                    "('5st', null)");
+        }
+        public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion){
+            db.execSQL(SQL_DELETE_ENTRIES);
+            onCreate(db);
+        }
+        public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion){
+            onUpgrade(db, oldVersion, newVersion);
+        }
     }
 }
