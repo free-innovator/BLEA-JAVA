@@ -1,16 +1,8 @@
 package com.practice.myapplication.activity;
 
 import android.app.ActionBar;
-import android.app.Activity;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
@@ -18,18 +10,15 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.Window;
-import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.practice.myapplication.R;
 import com.practice.myapplication.fragment.ClubFragment;
-import com.practice.myapplication.fragment.LocationFragment;
 import com.practice.myapplication.fragment.MainFragment;
-import com.practice.myapplication.fragment.MapFragment;
+import com.practice.myapplication.fragment.ScoreCardFragment;
 import com.practice.myapplication.fragment.SettingFragment;
+import com.practice.myapplication.fragment.StoreFragment;
 import com.practice.myapplication.manager.MyBluetoothManager;
 
 /**
@@ -37,11 +26,11 @@ import com.practice.myapplication.manager.MyBluetoothManager;
  */
 public class MainActivity extends FragmentActivity {
     private final String TAG = "MainActivity";
-    private interface FRAG_NUM { int MAIN=1, LOCATION=2, MAP=3, CLUB=4, SETTING=5; };
+    private interface FRAG_NUM { int MAIN=1, SCORECARD=2, STORE=3, CLUB=4, SETTING=5; };
 
     private MainFragment mMainFragment;
-    private MapFragment mMapFragment;
-    private LocationFragment mLocationFragment;
+    private ScoreCardFragment mScoreCardFragment;
+    private StoreFragment mStoreFragment;
     private ClubFragment mClubFragment;
     private SettingFragment mSettingFragment;
 
@@ -70,8 +59,8 @@ public class MainActivity extends FragmentActivity {
         setContentView(R.layout.activity_main);
 
         mMainFragment = new MainFragment();
-        mMapFragment = new MapFragment();
-        mLocationFragment = new LocationFragment();
+        mScoreCardFragment = new ScoreCardFragment();
+        mStoreFragment = new StoreFragment();
         mClubFragment = new ClubFragment();
         mSettingFragment = new SettingFragment();
 
@@ -105,10 +94,10 @@ public class MainActivity extends FragmentActivity {
                                             fragmentReplace(FRAG_NUM.MAIN);
                                             break;
                                         case R.id.fl_am_btn2:
-                                            fragmentReplace(FRAG_NUM.MAP);
+                                            fragmentReplace(FRAG_NUM.SCORECARD);
                                             break;
                                         case R.id.fl_am_btn3:
-                                            fragmentReplace(FRAG_NUM.LOCATION);
+                                            fragmentReplace(FRAG_NUM.STORE);
                                             break;
                                         case R.id.fl_am_btn4:
                                             fragmentReplace(FRAG_NUM.CLUB);
@@ -155,13 +144,13 @@ public class MainActivity extends FragmentActivity {
                     mTitleTextView.setPaintFlags(mTitleTextView.getPaintFlags() &~ Paint.FAKE_BOLD_TEXT_FLAG);
                     mTitleTextView.setText("Golf dic");
                     break;
-                case FRAG_NUM.MAP:
+                case FRAG_NUM.SCORECARD:
                     mTitleTextView.setPaintFlags(mTitleTextView.getPaintFlags() | Paint.FAKE_BOLD_TEXT_FLAG);
-                    mTitleTextView.setText("지도");
+                    mTitleTextView.setText("스코어카드");
                     break;
-                case FRAG_NUM.LOCATION:
+                case FRAG_NUM.STORE:
                     mTitleTextView.setPaintFlags(mTitleTextView.getPaintFlags() | Paint.FAKE_BOLD_TEXT_FLAG);
-                    mTitleTextView.setText("위치");
+                    mTitleTextView.setText("매장정보");
                     break;
                 case FRAG_NUM.CLUB:
                     mTitleTextView.setPaintFlags(mTitleTextView.getPaintFlags() | Paint.FAKE_BOLD_TEXT_FLAG);
@@ -188,11 +177,11 @@ public class MainActivity extends FragmentActivity {
             case FRAG_NUM.MAIN:
                 newFragment = mMainFragment;
                 break;
-            case FRAG_NUM.MAP:
-                newFragment = mMapFragment;
+            case FRAG_NUM.SCORECARD:
+                newFragment = mScoreCardFragment;
                 break;
-            case FRAG_NUM.LOCATION:
-                newFragment = mLocationFragment;
+            case FRAG_NUM.STORE:
+                newFragment = mStoreFragment;
                 break;
             case FRAG_NUM.CLUB:
                 newFragment = mClubFragment;
