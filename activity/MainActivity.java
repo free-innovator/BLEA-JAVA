@@ -25,6 +25,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.practice.myapplication.R;
+import com.practice.myapplication.fragment.ClubFragment;
 import com.practice.myapplication.fragment.LocationFragment;
 import com.practice.myapplication.fragment.MainFragment;
 import com.practice.myapplication.fragment.MapFragment;
@@ -35,11 +36,12 @@ import com.practice.myapplication.manager.MyBluetoothManager;
  */
 public class MainActivity extends FragmentActivity {
     private final String TAG = "MainActivity";
-    private interface FRAG_NUM { int MAIN=1, LOCATION=2, MAP=3; };
+    private interface FRAG_NUM { int MAIN=1, LOCATION=2, MAP=3, CLUB=4; };
 
     private MainFragment mMainFragment;
     private MapFragment mMapFragment;
     private LocationFragment mLocationFragment;
+    private ClubFragment mClubFragment;
 
     private TextView mTitleTextView;
     private FrameLayout mFrameLayout1;
@@ -68,6 +70,7 @@ public class MainActivity extends FragmentActivity {
         mMainFragment = new MainFragment();
         mMapFragment = new MapFragment();
         mLocationFragment = new LocationFragment();
+        mClubFragment = new ClubFragment();
 
         if(findViewById(R.id.ll_am_main) != null){
             if(savedInstanceState != null){
@@ -105,7 +108,7 @@ public class MainActivity extends FragmentActivity {
                                             fragmentReplace(FRAG_NUM.LOCATION);
                                             break;
                                         case R.id.fl_am_btn4:
-                                            Toast.makeText(getApplication(), "Button4 Click", Toast.LENGTH_LONG).show();
+                                            fragmentReplace(FRAG_NUM.CLUB);
                                             break;
                                         case R.id.fl_am_btn5:
                                             Toast.makeText(getApplication(), "Button5 Click", Toast.LENGTH_LONG).show();
@@ -157,6 +160,9 @@ public class MainActivity extends FragmentActivity {
                     mTitleTextView.setPaintFlags(mTitleTextView.getPaintFlags() | Paint.FAKE_BOLD_TEXT_FLAG);
                     mTitleTextView.setText("위치");
                     break;
+                case FRAG_NUM.CLUB:
+                    mTitleTextView.setPaintFlags(mTitleTextView.getPaintFlags() | Paint.FAKE_BOLD_TEXT_FLAG);
+                    mTitleTextView.setText("클럽");
                 default:
                     Log.d(TAG, "Unhandle case");
                     break;
@@ -180,6 +186,8 @@ public class MainActivity extends FragmentActivity {
             case FRAG_NUM.LOCATION:
                 newFragment = mLocationFragment;
                 break;
+            case FRAG_NUM.CLUB:
+                newFragment = mClubFragment;
             default:
                 Log.d(TAG, "Unhandle case");
                 break;
