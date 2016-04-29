@@ -1,12 +1,17 @@
 package com.practice.myapplication.fragment;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.text.InputType;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -95,20 +100,53 @@ public class ClubFragment extends Fragment {
                 rightTextView = holder.mRightTextView;
             }
 
-            ClubData clubData = mList.get(pos);
+            final ClubData clubData = mList.get(pos);
             leftTextView.setText(clubData.getName());
-            rightTextView.setText(String.valueOf(clubData.getMeter()));
+            if(clubData.getMeter() != 0){
+                rightTextView.setText(String.valueOf(clubData.getMeter()));
+            }
+            else{
+                rightTextView.setText("미정");
+            }
 
             convertView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Toast.makeText(context, "리스트 클릭 : " + mList.get(pos), Toast.LENGTH_SHORT).show();
+                    Log.d("convertView", "onClick");
                 }
             });
             convertView.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
-                    Toast.makeText(context, "리스트 롱 클릭 : " + mList.get(pos), Toast.LENGTH_SHORT).show();
+                    Log.d("convertView", "onLongClick");
+                    AlertDialog.Builder alertDialog = new AlertDialog.Builder(getActivity());
+                    alertDialog.setTitle("클럽 거리 입력");
+                    alertDialog.setMessage("수정 클럽 : " + clubData.getName());
+
+                    final EditText editText = new EditText(getActivity());
+                    editText.setInputType(InputType.TYPE_CLASS_NUMBER);
+                    alertDialog.setView(editText);
+
+                    alertDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            try{
+                                int meter = Integer.parseInt(editText.getText().toString());
+                                MyDBManager.updateClubList(getActivity(), new ClubData(clubData.getName(), meter));
+                                setList(MyDBManager.getClubList(getActivity()));
+                                refresh();
+                            }
+                            catch(NumberFormatException e){
+                            }
+                        }
+                    });
+                    alertDialog.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                        }
+                    });
+
+                    alertDialog.show();
                     return true;
                 }
             });
@@ -119,6 +157,14 @@ public class ClubFragment extends Fragment {
         private class CustomHolder{
             TextView mLeftTextView;
             TextView mRightTextView;
+        }
+
+        private void setList(ArrayList<ClubData> list){
+            mList = list;
+        }
+
+        private void refresh(){
+            this.notifyDataSetChanged();
         }
     }
 

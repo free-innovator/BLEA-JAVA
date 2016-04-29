@@ -4,6 +4,7 @@ package com.practice.myapplication.data;
  * Created by hagtfms on 2016-04-29.
  */
 public class ClubData {
+    public static final String TABLE_NAME = "tbl_club";
     public static final String COLUMN_NAME_NAME = "Cname";
     public static final String COLUMN_NAME_METER = "Cmeter";
 

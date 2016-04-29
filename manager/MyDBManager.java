@@ -21,7 +21,7 @@ public class MyDBManager {
         }
 
         SQLiteDatabase db = mClubDbHelper.getReadableDatabase();
-        Cursor c = db.rawQuery("select * from tbl_club", null);
+        Cursor c = db.rawQuery("select * from "+ClubData.TABLE_NAME, null);
 
         ArrayList<ClubData> clubList = new ArrayList<ClubData>();
         if(c.getCount() != 0){
@@ -37,6 +37,16 @@ public class MyDBManager {
         db.close();
         return clubList;
     }
+    public static void updateClubList(Context context, ClubData clubData){
+        if(mClubDbHelper == null){
+            mClubDbHelper = new ClubDbHelper(context);
+        }
+
+        SQLiteDatabase db = mClubDbHelper.getWritableDatabase();
+        db.execSQL("update "+ ClubData.TABLE_NAME +
+                " set "+ ClubData.COLUMN_NAME_METER + "=" + clubData.getMeter() +
+                " where "+ ClubData.COLUMN_NAME_NAME + "='" + clubData.getName() + "'");
+    }
 
     @Override
     protected void finalize() throws Throwable{
@@ -50,7 +60,7 @@ public class MyDBManager {
 
 class ClubDbHelper extends SQLiteOpenHelper{
     private static final String SQL_CREATE_ENTRIES =
-            "CREATE TABLE tbl_club(" +
+            "CREATE TABLE "+ClubData.TABLE_NAME+"(" +
                     "_id integer auto_increment," +
                     ClubData.COLUMN_NAME_NAME + " varchar(20) not null," +
                     ClubData.COLUMN_NAME_METER + " integer," +
