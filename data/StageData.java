@@ -3,13 +3,13 @@ package com.practice.myapplication.data;
 /**
  * Created by hagtfms on 2016-04-24.
  */
-public class LocationData {
+public class StageData {
     private boolean mIsTCup;
     private boolean mIsCenter;
     private boolean mIsHcup; // holecup
     private boolean mIsMiddle;
 
-    public LocationData(boolean isTCup, boolean isCenter, boolean isHCup, boolean isMiddle){
+    public StageData(boolean isTCup, boolean isCenter, boolean isHCup, boolean isMiddle){
         mIsTCup = isTCup;
         mIsCenter = isCenter;
         mIsHcup = isHCup;

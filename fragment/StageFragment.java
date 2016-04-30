@@ -18,7 +18,7 @@ import java.util.ArrayList;
 /**
  * Created by hagtfms on 2016-04-24.
  */
-public class LocationFragment extends Fragment {
+public class StageFragment extends Fragment {
     private ListView mListView;
     private CustomAdapter mAdapter;
 
@@ -26,7 +26,7 @@ public class LocationFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState){
         super.onCreateView(inflater, container, savedInstanceState);
-        View v = inflater.inflate(R.layout.fragment_location, container, false);
+        View v = inflater.inflate(R.layout.fragment_stage, container, false);
 
         /**
          * reference : http://kd3302.tistory.com/85
@@ -90,7 +90,7 @@ public class LocationFragment extends Fragment {
             if (convertView == null) {
                 LayoutInflater inflater =
                         (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                convertView = inflater.inflate(R.layout.list_item_location, parent, false);
+                convertView = inflater.inflate(R.layout.list_item_stage, parent, false);
 
                 leftButton = (ToggleButton) convertView.findViewById(R.id.tgbtn_lil_left);
                 centerButton = (ToggleButton) convertView.findViewById(R.id.tgbtn_lil_center);

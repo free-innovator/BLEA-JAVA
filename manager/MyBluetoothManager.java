@@ -32,20 +32,28 @@ public class MyBluetoothManager {
     private static IBeaconData mIBeaconData = null;
     private static boolean mIsIBeaconScaiing = false;
 
+    private static Activity curActivity = null;
+
     public static boolean initSetting(Activity context) {
         final android.bluetooth.BluetoothManager bluetoothManager =
                 (android.bluetooth.BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
         if(bluetoothManager != null) mBluetoothAdapter = bluetoothManager.getAdapter();
 
-        return (mBluetoothAdapter != null)? true: false;
+        if(mBluetoothAdapter != null){
+            curActivity = context;
+            return true;
+        }
+
+        return false;
     }
 
     public static boolean isEnabled(){
-        if(mBluetoothAdapter != null){
+        if(mBluetoothAdapter != null && ContextCompat.checkSelfPermission(
+                curActivity, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED){
             return mBluetoothAdapter.isEnabled();
         }
-        else
-            return false;
+        return false;
     }
     public static boolean enable(){
         if(mBluetoothAdapter != null) {
@@ -54,8 +62,7 @@ public class MyBluetoothManager {
             else
                 return true;
         }
-        else
-            return false;
+        return false;
     }
     public static boolean disable(){
         if(mBluetoothAdapter != null) {
@@ -64,23 +71,25 @@ public class MyBluetoothManager {
             else
                 return true;
         }
-        else
-            return false;
+        return false;
     }
-    public static boolean startScanForIBeacon(){
-        if(MyBluetoothManager.isEnabled() && !mIsIBeaconScaiing) {
-            if(mBLEScanner == null) {
-                mBLEScanner = mBluetoothAdapter.getBluetoothLeScanner();
-                if (mBLEScanner == null) return false;
-            }
+    public static boolean startScanForIBeacon() {
+        if (curActivity != null){
+            if (ContextCompat.checkSelfPermission(curActivity, Manifest.permission.ACCESS_FINE_LOCATION)
+                    == PackageManager.PERMISSION_GRANTED
+                    && MyBluetoothManager.isEnabled() && !mIsIBeaconScaiing) {
+                if (mBLEScanner == null) {
+                    mBLEScanner = mBluetoothAdapter.getBluetoothLeScanner();
+                    if (mBLEScanner == null) return false;
+                }
 
-            ScanSettings scanSettings = new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build();
-            mBLEScanner.startScan(null, scanSettings, mIBeaconScanCallback);
-            mIsIBeaconScaiing = true;
-            return true;
+                ScanSettings scanSettings = new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build();
+                mBLEScanner.startScan(null, scanSettings, mIBeaconScanCallback);
+                mIsIBeaconScaiing = true;
+                return true;
+            }
         }
-        else
-            return false;
+        return false;
     }
     public static void stopScanForIBeacon(){
         if(mBLEScanner != null){
