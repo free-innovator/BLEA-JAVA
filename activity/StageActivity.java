@@ -1,8 +1,8 @@
-package com.practice.myapplication.fragment;
+package com.practice.myapplication.activity;
 
+import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,21 +18,17 @@ import java.util.ArrayList;
 /**
  * Created by hagtfms on 2016-04-24.
  */
-public class StageFragment extends Fragment {
+public class StageActivity extends Activity {
     private ListView mListView;
     private CustomAdapter mAdapter;
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState){
-        super.onCreateView(inflater, container, savedInstanceState);
-        View v = inflater.inflate(R.layout.fragment_stage, container, false);
+    protected void onCreate(Bundle savedInstanceState){
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_stage);
 
-        /**
-         * reference : http://kd3302.tistory.com/85
-         */
         mAdapter = new CustomAdapter();
-        mListView = (ListView) v.findViewById(R.id.lv_course_state);
+        mListView = (ListView) findViewById(R.id.lv_course_state);
         mListView.setAdapter(mAdapter);
 
         mAdapter.add("aaa");
@@ -45,8 +41,6 @@ public class StageFragment extends Fragment {
         mAdapter.add("hhh");
         mAdapter.add("iii");
         mAdapter.add("jjj");
-
-        return v;
     }
 
     /**
@@ -144,11 +138,20 @@ public class StageFragment extends Fragment {
     }
 
     @Override
-    public void onDestroyView(){
-        super.onDestroyView();
+    protected void onResume(){
+        super.onResume();
     }
+
     @Override
-    public void onDestroy() {
-        super.onDestroy();
+    protected void onPause(){  super.onPause(); }
+
+    @Override
+    protected void onRestart(){
+        super.onRestart();
+    }
+
+    @Override
+    public void finish(){
+        super.finish();
     }
 }
