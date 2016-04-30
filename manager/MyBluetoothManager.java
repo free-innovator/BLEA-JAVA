@@ -9,6 +9,7 @@ import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
@@ -34,7 +35,7 @@ public class MyBluetoothManager {
 
     private static Activity curActivity = null;
 
-    public static boolean initSetting(Activity context) {
+    public static boolean initSetting(@NonNull Activity context) {
         final android.bluetooth.BluetoothManager bluetoothManager =
                 (android.bluetooth.BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
         if(bluetoothManager != null) mBluetoothAdapter = bluetoothManager.getAdapter();
@@ -48,10 +49,12 @@ public class MyBluetoothManager {
     }
 
     public static boolean isEnabled(){
-        if(mBluetoothAdapter != null && ContextCompat.checkSelfPermission(
-                curActivity, Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED){
-            return mBluetoothAdapter.isEnabled();
+        if(curActivity != null) {
+            if (mBluetoothAdapter != null && ContextCompat.checkSelfPermission(
+                    curActivity, Manifest.permission.ACCESS_FINE_LOCATION)
+                    == PackageManager.PERMISSION_GRANTED) {
+                return mBluetoothAdapter.isEnabled();
+            }
         }
         return false;
     }

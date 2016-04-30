@@ -4,11 +4,8 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
-import android.view.Window;
-import android.widget.TextView;
 
 import com.practice.myapplication.R;
-import com.practice.myapplication.manager.MyBluetoothManager;
 
 /**
  * Created by hagtfms on 2016-04-17.

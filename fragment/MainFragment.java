@@ -13,7 +13,6 @@ import android.widget.Button;
 
 import com.practice.myapplication.R;
 import com.practice.myapplication.activity.ConsentActivity;
-import com.practice.myapplication.activity.PlayActivity;
 
 /**
  * Created by hagtfms on 2016-04-25.

@@ -8,6 +8,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
@@ -21,7 +22,7 @@ public class MyGPSManager {
 
     private static MyLocationListener mLocationListener = null;
 
-    public static boolean initSetting(Activity context) {
+    public static boolean initSetting(@NonNull Activity context) {
         mLocationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 
         if(mLocationManager != null){
@@ -67,10 +68,14 @@ public class MyGPSManager {
     }
 
     public static boolean isEnabled(){
-        if(mLocationManager != null && ContextCompat.checkSelfPermission(
-                curActivity, Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED ){
-            return true;
+        if(curActivity != null && mLocationManager != null){
+            if(ContextCompat.checkSelfPermission(
+                    curActivity, Manifest.permission.ACCESS_FINE_LOCATION)
+                    == PackageManager.PERMISSION_GRANTED &&
+                    mLocationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER) &&
+                    mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
+                return true;
+            }
         }
         return false;
     }

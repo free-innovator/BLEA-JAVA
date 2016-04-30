@@ -2,9 +2,12 @@ package com.practice.myapplication.activity;
 
 import android.Manifest;
 import android.app.Activity;
+import android.bluetooth.BluetoothAdapter;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.LocationManager;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
@@ -13,7 +16,6 @@ import android.widget.Switch;
 import android.widget.Toast;
 
 import com.practice.myapplication.R;
-import com.practice.myapplication.fragment.MainFragment;
 import com.practice.myapplication.manager.MyBluetoothManager;
 import com.practice.myapplication.manager.MyGPSManager;
 
@@ -27,7 +29,7 @@ public class ConsentActivity extends Activity {
     private Switch mSwitchGPS = null;
     private Switch mSwitchPermission = null;
 
-    private final int MY_PERMISSIONS_REQUEST = 0;
+    private interface REQUEST{int BLUETOOTH=0, GPS =1, PERMISSION=2; }
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
@@ -45,6 +47,8 @@ public class ConsentActivity extends Activity {
         mSwitchPermission.setChecked(
                 ContextCompat.checkSelfPermission(thisActivity, Manifest.permission.ACCESS_FINE_LOCATION)
                         == PackageManager.PERMISSION_GRANTED);
+        if(mSwitchBluetooth.isChecked()) mSwitchBluetooth.setEnabled(false);
+        if(mSwitchGPS.isChecked()) mSwitchGPS.setEnabled(false);
         if(mSwitchPermission.isChecked()) mSwitchPermission.setEnabled(false);
 
         checkSwitch();
@@ -58,7 +62,7 @@ public class ConsentActivity extends Activity {
     @Override
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults){
         switch(requestCode){
-            case MY_PERMISSIONS_REQUEST:{
+            case REQUEST.PERMISSION:{
                 if(grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED){
                     mSwitchPermission.setChecked(true);
@@ -69,14 +73,40 @@ public class ConsentActivity extends Activity {
                     Log.d("ConsentActivity", "onRequestPermissionsResult - setChecked(false)");
                 }
                 checkSwitch();
-                return;
+                break;
             }
+        }
+    }
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent intent){
+        super.onActivityResult(requestCode, resultCode, intent);
+        switch(requestCode){
+            case REQUEST.BLUETOOTH:
+                switch(resultCode){
+                    case Activity.RESULT_OK:
+                        mSwitchBluetooth.setChecked(true);
+                        mSwitchBluetooth.setEnabled(false);
+                        break;
+                    case Activity.RESULT_CANCELED:
+                        mSwitchBluetooth.setChecked(false);
+                        break;
+                }
+                break;
+            case REQUEST.GPS:
+                if(MyGPSManager.isEnabled()){
+                    mSwitchGPS.setChecked(true);
+                    mSwitchGPS.setEnabled(false);
+                }
+                else{
+                    mSwitchGPS.setChecked(false);
+                }
+                break;
         }
     }
 
     private void checkSwitch(){
         if(mSwitchBluetooth.isChecked() && mSwitchGPS.isChecked() && mSwitchPermission.isChecked()){
-            Intent i = new Intent(ConsentActivity.this, PlayActivity.class);
+            Intent i = new Intent(ConsentActivity.this, TestActivity.class);
             startActivity(i);
             overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
             finish();
@@ -93,11 +123,11 @@ public class ConsentActivity extends Activity {
                     }
 
                     if (isChecked) {
-                        if (!MyBluetoothManager.enable())
+                        if (!MyBluetoothManager.isEnabled()) {
                             buttonView.setChecked(false);
-                    } else {
-                        if (!MyBluetoothManager.disable())
-                            buttonView.setChecked(true);
+                            Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                            startActivityForResult(enableIntent, REQUEST.BLUETOOTH);
+                        }
                     }
                     break;
 
@@ -106,6 +136,8 @@ public class ConsentActivity extends Activity {
                     if(isChecked){
                         if(!MyGPSManager.isEnabled()){
                             buttonView.setChecked(false);
+                            Intent enableIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                            startActivityForResult(enableIntent, REQUEST.GPS);
                         }
                     }
                     break;
@@ -124,13 +156,13 @@ public class ConsentActivity extends Activity {
                                 ActivityCompat.requestPermissions(
                                         thisActivity,
                                         new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                                        MY_PERMISSIONS_REQUEST);
+                                        REQUEST.PERMISSION);
                             }
                             else{
                                 ActivityCompat.requestPermissions(
                                         thisActivity,
                                         new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                                        MY_PERMISSIONS_REQUEST);
+                                        REQUEST.PERMISSION);
                             }
                         }
                     }
