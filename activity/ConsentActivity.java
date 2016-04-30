@@ -15,6 +15,7 @@ import android.widget.Toast;
 import com.practice.myapplication.R;
 import com.practice.myapplication.fragment.MainFragment;
 import com.practice.myapplication.manager.MyBluetoothManager;
+import com.practice.myapplication.manager.MyGPSManager;
 
 /**
  * Created by hagtfms on 2016-04-18.
@@ -38,8 +39,9 @@ public class ConsentActivity extends Activity {
         mSwitchPermission = (Switch)findViewById(R.id.swicth_permission);
 
         MyBluetoothManager.initSetting(thisActivity);
+        MyGPSManager.initSetting(thisActivity);
         mSwitchBluetooth.setChecked(MyBluetoothManager.isEnabled());
-        mSwitchGPS.setChecked(true);
+        mSwitchGPS.setChecked(MyGPSManager.isEnabled());
         mSwitchPermission.setChecked(
                 ContextCompat.checkSelfPermission(thisActivity, Manifest.permission.ACCESS_FINE_LOCATION)
                         == PackageManager.PERMISSION_GRANTED);
@@ -86,7 +88,6 @@ public class ConsentActivity extends Activity {
             switch(buttonView.getId()){
                 case R.id.swicth_bluetooth:
                     Log.i("onCheckedChanged", "bluetooth check = " + isChecked);
-
                     if(!MyBluetoothManager.isEnabled()){
                         MyBluetoothManager.initSetting(thisActivity);
                     }
@@ -102,6 +103,11 @@ public class ConsentActivity extends Activity {
 
                 case R.id.swicth_gps:
                     Log.i("onCheckedChanged", "GPS check = " + isChecked);
+                    if(isChecked){
+                        if(!MyGPSManager.isEnabled()){
+                            buttonView.setChecked(false);
+                        }
+                    }
                     break;
 
                 case R.id.swicth_permission:
