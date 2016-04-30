@@ -20,6 +20,8 @@ import java.util.TimerTask;
  * Created by hagtfms on 2016-04-26.
  */
 public class TestActivity extends Activity {
+    private final String TAG = "TestActivity";
+
     private Handler mHandler;
     private Timer mScanTimer;
 
@@ -49,7 +51,7 @@ public class TestActivity extends Activity {
         mTCupButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.d("TestActivity", "mTCupButton Click");
+                Log.d(TAG, "mTCupButton Click");
                 Location location = MyGPSManager.getLocation();
                 if(location != null){
                     mTvTCup.setText(location.getLatitude() + ", " + location.getLongitude());
@@ -59,7 +61,7 @@ public class TestActivity extends Activity {
         mHCupButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.d("TestActivity", "mHCupButton Click");
+                Log.d(TAG, "mHCupButton Click");
                 Location location = MyGPSManager.getLocation();
                 if(location != null){
                     mTvHCup.setText(location.getLatitude() + ", " + location.getLongitude());

@@ -18,7 +18,7 @@ import com.practice.myapplication.activity.ConsentActivity;
  * Created by hagtfms on 2016-04-25.
  */
 public class MainFragment extends Fragment {
-    private Bitmap mBitmapBackground;
+    private Bitmap mBitmapBackground = null;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState){
@@ -37,23 +37,29 @@ public class MainFragment extends Fragment {
         /**
          * http://egloos.zum.com/javalove/v/67828
          */
-        BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inSampleSize = 4;
-        mBitmapBackground = BitmapFactory.decodeResource(
-                getResources(), R.drawable.background_activity_fragment, options);
-        v.setBackground(new BitmapDrawable(getResources(), mBitmapBackground));
+        if(mBitmapBackground == null){
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inSampleSize = 10;
+            mBitmapBackground = BitmapFactory.decodeResource(
+                    getResources(), R.drawable.background_activity_fragment, options);
+            v.setBackground(new BitmapDrawable(getResources(), mBitmapBackground));
+        }
         return v;
     }
     @Override
     public void onDestroyView(){
+        super.onDestroyView();
         if(mBitmapBackground != null){
             mBitmapBackground.recycle();
             mBitmapBackground = null;
         }
-        super.onDestroyView();
     }
     @Override
     public void onDestroy() {
         super.onDestroy();
+        if(mBitmapBackground != null){
+            mBitmapBackground.recycle();
+            mBitmapBackground = null;
+        }
     }
 }
