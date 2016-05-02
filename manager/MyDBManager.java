@@ -4,15 +4,30 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.os.AsyncTask;
+import android.support.annotation.NonNull;
 
 import com.practice.myapplication.data.ClubData;
+import com.practice.myapplication.data.StoreData;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 
 /**
  * Created by hagtfms on 2016-04-18.
  */
 public class MyDBManager {
+    private static final String SERVER_DOMAIN = "1.244.226.109";
+    private static final String PHP_ADDRESS = "http://"+SERVER_DOMAIN+"/php/";
     private static ClubDbHelper mClubDbHelper = null;
 
     public static ArrayList<ClubData> getClubList(Context context){
@@ -37,6 +52,41 @@ public class MyDBManager {
         db.close();
         return clubList;
     }
+    public static ArrayList<StoreData> getStoreList(){
+        String json = getString(PHP_ADDRESS + "getStore.php");
+
+        ArrayList<StoreData> storeList = new ArrayList<StoreData>();
+        try{
+            JSONObject root = new JSONObject(json);
+            JSONArray jsonArray = root.getJSONArray("results");
+            for(int i=0; i<jsonArray.length(); i++){
+                JSONObject jsonObject = jsonArray.getJSONObject(i);
+                storeList.add(new StoreData(
+                        jsonObject.getInt("id"),
+                        jsonObject.getString("name")));
+            }
+        }catch(JSONException e){
+            e.printStackTrace();
+        }
+
+        return storeList;
+    }
+    public static String getTactic(final int groundId){
+        return getString(PHP_ADDRESS + "getTactic.php?id="+groundId);
+    }
+
+    private static String getString(String url){
+        PhpDownloadThread phpDownloadThread = new PhpDownloadThread(url);
+        phpDownloadThread.start();
+        try{
+            phpDownloadThread.join();
+        }catch(InterruptedException e){
+            e.printStackTrace();
+        }
+
+        return phpDownloadThread.getResult();
+    }
+
     public static void updateClubList(Context context, ClubData clubData){
         if(mClubDbHelper == null){
             mClubDbHelper = new ClubDbHelper(context);
@@ -89,6 +139,52 @@ public class MyDBManager {
         }
         public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion){
             onUpgrade(db, oldVersion, newVersion);
+        }
+    }
+
+    private static class PhpDownloadThread extends Thread{
+        private String mResultString = null;
+        private String mDownloadURLString = null;
+
+        private String getResult(){ return mResultString; }
+
+        private PhpDownloadThread(@NonNull String url){
+            mDownloadURLString = url;
+        }
+
+        @Override
+        public void run(){
+            StringBuilder jsonHtml = new StringBuilder();
+            try{
+                URL url = new URL(mDownloadURLString);
+                HttpURLConnection conn = (HttpURLConnection)url.openConnection();
+
+                if(conn != null){
+                    conn.setConnectTimeout(10000);
+                    conn.setUseCaches(false);
+
+                    if(conn.getResponseCode() == HttpURLConnection.HTTP_OK){
+                        BufferedReader bufferedReader =
+                                new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                        while(true){
+                            String line = bufferedReader.readLine();
+                            if(line == null) break;
+
+                            jsonHtml.append(line + '\n');
+                        }
+                        bufferedReader.close();
+                    }
+                    conn.disconnect();
+                }
+            }
+            catch(MalformedURLException e){
+                e.printStackTrace();
+            }
+            catch(IOException e){
+                e.printStackTrace();
+            }
+
+            mResultString = jsonHtml.toString();
         }
     }
 }

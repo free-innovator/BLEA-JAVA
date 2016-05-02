@@ -1,6 +1,9 @@
 package com.practice.myapplication.activity;
 
 import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
@@ -20,6 +23,12 @@ import java.util.TimerTask;
  * Created by hagtfms on 2016-04-26.
  */
 public class TestActivity extends Activity {
+    public final static String STR_PREFERENCES_NAME = "Test";
+    public final static String STR_TCUP_LOC_LADITUDE = "TCUP_LOC_LADITUDE";
+    public final static String STR_TCUP_LOC_LONGITUDE = "TCUP_LOC_LONGITUDE";
+    public final static String STR_HCUP_LOC_LADITUDE = "STR_HCUP_LOC_LADITUDE";
+    public final static String STR_HCUP_LOC_LONGITUDE = "STR_HCUP_LOC_LONGITUDE";
+
     private final String TAG = "TestActivity";
 
     private Handler mHandler;
@@ -27,11 +36,16 @@ public class TestActivity extends Activity {
 
     private Button mTCupButton;
     private Button mHCupButton;
+    private Button mNextButton;
     private TextView mTvTCup;
     private TextView mTvHCup;
     private TextView mTvLaditude;
     private TextView mTvLongitude;
     private TextView mTvProvider;
+    private TextView mTvAccuracy;
+
+    private boolean isTCupSetting = false;
+    private boolean isHCupSetting = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
@@ -40,13 +54,19 @@ public class TestActivity extends Activity {
 
         mHandler = new Handler();
 
-        mTCupButton = (Button)findViewById(R.id.btn_aplay_tcup);
-        mHCupButton = (Button)findViewById(R.id.btn_aplay_hcup);
-        mTvTCup = (TextView)findViewById(R.id.tv_aplay_tcup);
-        mTvHCup = (TextView)findViewById(R.id.tv_aplay_hcup);
-        mTvLaditude = (TextView)findViewById(R.id.tv_aplay_laditude);
-        mTvLongitude = (TextView)findViewById(R.id.tv_aplay_longitude);
-        mTvProvider = (TextView)findViewById(R.id.tv_aplay_provider);
+        mTCupButton = (Button)findViewById(R.id.btn_atest_tcup);
+        mHCupButton = (Button)findViewById(R.id.btn_atest_hcup);
+        mNextButton = (Button)findViewById(R.id.btn_atest_next);
+        mTvTCup = (TextView)findViewById(R.id.tv_atest_tcup);
+        mTvHCup = (TextView)findViewById(R.id.tv_atest_hcup);
+        mTvLaditude = (TextView)findViewById(R.id.tv_atest_laditude);
+        mTvLongitude = (TextView)findViewById(R.id.tv_atest_longitude);
+        mTvProvider = (TextView)findViewById(R.id.tv_atest_provider);
+        mTvAccuracy = (TextView)findViewById(R.id.tv_atest_accuracy);
+
+
+        final SharedPreferences prefs =
+                getSharedPreferences(STR_PREFERENCES_NAME, Context.MODE_PRIVATE);
 
         mTCupButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -55,6 +75,13 @@ public class TestActivity extends Activity {
                 Location location = MyGPSManager.getLocation();
                 if(location != null){
                     mTvTCup.setText(location.getLatitude() + ", " + location.getLongitude());
+
+                    SharedPreferences.Editor editor = prefs.edit();
+                    editor.putFloat(STR_TCUP_LOC_LADITUDE, (float)location.getLatitude());
+                    editor.putFloat(STR_TCUP_LOC_LONGITUDE, (float)location.getLongitude());
+                    editor.commit();
+
+                    isTCupSetting = true;
                 }
             }
         });
@@ -65,6 +92,24 @@ public class TestActivity extends Activity {
                 Location location = MyGPSManager.getLocation();
                 if(location != null){
                     mTvHCup.setText(location.getLatitude() + ", " + location.getLongitude());
+
+                    SharedPreferences.Editor editor = prefs.edit();
+                    editor.putFloat(STR_HCUP_LOC_LADITUDE, (float)location.getLatitude());
+                    editor.putFloat(STR_HCUP_LOC_LONGITUDE, (float)location.getLongitude());
+                    editor.commit();
+
+                    isHCupSetting = true;
+                }
+            }
+        });
+        mNextButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(isHCupSetting && isTCupSetting){
+                    Intent i = new Intent(TestActivity.this, PlayActivity.class);
+                    startActivity(i);
+                    overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+                    finish();
                 }
             }
         });
@@ -74,6 +119,7 @@ public class TestActivity extends Activity {
         if(mScanTimer != null){
             mScanTimer.schedule(new MyTimerTask(), 0, 500);
         }
+
     }
 
     @Override
@@ -133,6 +179,7 @@ public class TestActivity extends Activity {
                                     else if(prevLocation.getProvider().equals(LocationManager.NETWORK_PROVIDER))
                                         mTvProvider.setText("Network");
                                 }
+                                if(mTvAccuracy != null) mTvAccuracy.setText(String.valueOf(prevLocation.getAccuracy()));
                             }
                         });
                     }

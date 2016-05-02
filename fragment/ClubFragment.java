@@ -86,8 +86,8 @@ public class ClubFragment extends Fragment {
                         (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
                 convertView = inflater.inflate(R.layout.list_item_club, parent, false);
 
-                leftTextView = (TextView)convertView.findViewById(R.id.tv_lic_left);
-                rightTextView = (TextView)convertView.findViewById(R.id.tv_lic_right);
+                leftTextView = (TextView)convertView.findViewById(R.id.tv_liclub_left);
+                rightTextView = (TextView)convertView.findViewById(R.id.tv_liclub_right);
 
                 holder = new CustomHolder();
                 holder.mLeftTextView = leftTextView;
