@@ -14,6 +14,8 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.practice.myapplication.R;
+import com.practice.myapplication.data.IBeaconData;
+import com.practice.myapplication.manager.MyBluetoothManager;
 import com.practice.myapplication.manager.MyGPSManager;
 
 import java.util.Timer;
@@ -43,6 +45,8 @@ public class TestActivity extends Activity {
     private TextView mTvLongitude;
     private TextView mTvProvider;
     private TextView mTvAccuracy;
+    private TextView mTvRssi;
+    private TextView mTvOnoff;
 
     private boolean isTCupSetting = false;
     private boolean isHCupSetting = false;
@@ -57,12 +61,15 @@ public class TestActivity extends Activity {
         mTCupButton = (Button)findViewById(R.id.btn_atest_tcup);
         mHCupButton = (Button)findViewById(R.id.btn_atest_hcup);
         mNextButton = (Button)findViewById(R.id.btn_atest_next);
+
         mTvTCup = (TextView)findViewById(R.id.tv_atest_tcup);
         mTvHCup = (TextView)findViewById(R.id.tv_atest_hcup);
         mTvLaditude = (TextView)findViewById(R.id.tv_atest_laditude);
         mTvLongitude = (TextView)findViewById(R.id.tv_atest_longitude);
         mTvProvider = (TextView)findViewById(R.id.tv_atest_provider);
         mTvAccuracy = (TextView)findViewById(R.id.tv_atest_accuracy);
+        mTvRssi = (TextView)findViewById(R.id.tv_atest_rssi);
+        mTvOnoff = (TextView)findViewById(R.id.tv_atest_onoff);
 
 
         final SharedPreferences prefs =
@@ -115,11 +122,11 @@ public class TestActivity extends Activity {
         });
 
         MyGPSManager.setListener(true);
+        MyBluetoothManager.startScanForIBeacon();
         mScanTimer = new Timer(true);
         if(mScanTimer != null){
             mScanTimer.schedule(new MyTimerTask(), 0, 500);
         }
-
     }
 
     @Override
@@ -160,6 +167,7 @@ public class TestActivity extends Activity {
 
     private  class MyTimerTask extends TimerTask {
         private Location prevLocation = null;
+        private IBeaconData prevIBeaconData = null;
         @Override
         public void run(){
             Location location = MyGPSManager.getLocation();
@@ -180,6 +188,22 @@ public class TestActivity extends Activity {
                                         mTvProvider.setText("Network");
                                 }
                                 if(mTvAccuracy != null) mTvAccuracy.setText(String.valueOf(prevLocation.getAccuracy()));
+                            }
+                        });
+                    }
+                }
+            }
+
+            IBeaconData iBeaconData = MyBluetoothManager.getIBeaconData();
+            if(iBeaconData != null){
+                if(!iBeaconData.equals(prevIBeaconData)){
+                    prevIBeaconData = iBeaconData;
+
+                    if(prevIBeaconData != null){
+                        mHandler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                if(mTvRssi != null) mTvRssi.setText("RSSI = " + prevIBeaconData.getRssi());
                             }
                         });
                     }

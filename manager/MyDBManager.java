@@ -8,6 +8,7 @@ import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 
 import com.practice.myapplication.data.ClubData;
+import com.practice.myapplication.data.ScoreData;
 import com.practice.myapplication.data.StoreData;
 
 import org.json.JSONArray;
@@ -73,6 +74,41 @@ public class MyDBManager {
     }
     public static String getTactic(final int groundId){
         return getString(PHP_ADDRESS + "getTactic.php?id="+groundId);
+    }
+    public static ScoreData getScore(final int gameid){
+        String json = getString(PHP_ADDRESS + "getScore.php?id="+gameid);
+
+        ScoreData scoreData = null;
+        try{
+            JSONObject root = new JSONObject(json);
+            JSONArray jsonArray = root.getJSONArray("results");
+            for(int i=0; i<jsonArray.length(); i++){
+                JSONObject jsonObject = jsonArray.getJSONObject(i);
+                scoreData = new ScoreData(
+                        jsonObject.getInt("courseid"),
+                        jsonObject.getInt("s1"),
+                        jsonObject.getInt("s2"),
+                        jsonObject.getInt("s3"),
+                        jsonObject.getInt("s4"),
+                        jsonObject.getInt("s5"),
+                        jsonObject.getInt("s6"),
+                        jsonObject.getInt("s7"),
+                        jsonObject.getInt("s8"),
+                        jsonObject.getInt("s9"),
+                        jsonObject.getInt("s10"),
+                        jsonObject.getInt("s11"),
+                        jsonObject.getInt("s12"),
+                        jsonObject.getInt("s13"),
+                        jsonObject.getInt("s14"),
+                        jsonObject.getInt("s15"),
+                        jsonObject.getInt("s16")
+                );
+            }
+        }catch(JSONException e){
+            e.printStackTrace();
+        }
+
+        return scoreData;
     }
 
     private static String getString(String url){
