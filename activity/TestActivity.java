@@ -38,7 +38,6 @@ public class TestActivity extends Activity {
 
     private Button mTCupButton;
     private Button mHCupButton;
-    private Button mNextButton;
     private TextView mTvTCup;
     private TextView mTvHCup;
     private TextView mTvLaditude;
@@ -60,7 +59,6 @@ public class TestActivity extends Activity {
 
         mTCupButton = (Button)findViewById(R.id.btn_atest_tcup);
         mHCupButton = (Button)findViewById(R.id.btn_atest_hcup);
-        mNextButton = (Button)findViewById(R.id.btn_atest_next);
 
         mTvTCup = (TextView)findViewById(R.id.tv_atest_tcup);
         mTvHCup = (TextView)findViewById(R.id.tv_atest_hcup);
@@ -106,17 +104,6 @@ public class TestActivity extends Activity {
                     editor.commit();
 
                     isHCupSetting = true;
-                }
-            }
-        });
-        mNextButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(isHCupSetting && isTCupSetting){
-                    Intent i = new Intent(TestActivity.this, PlayActivity.class);
-                    startActivity(i);
-                    overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
-                    finish();
                 }
             }
         });

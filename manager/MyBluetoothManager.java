@@ -28,7 +28,6 @@ import java.util.List;
  */
 public class MyBluetoothManager {
     private static BluetoothAdapter mBluetoothAdapter = null;
-    private static BluetoothLeScanner mBLEScanner = null;
 
     private static IBeaconData mIBeaconData = null;
     private static boolean mIsIBeaconScaiing = false;
@@ -58,6 +57,11 @@ public class MyBluetoothManager {
         }
         return false;
     }
+
+    /**
+     * not used
+     * @return
+     */
     public static boolean enable(){
         if(mBluetoothAdapter != null) {
             if(!mBluetoothAdapter.isEnabled())
@@ -67,6 +71,10 @@ public class MyBluetoothManager {
         }
         return false;
     }
+    /**
+     * not used
+     * @return
+     */
     public static boolean disable(){
         if(mBluetoothAdapter != null) {
             if(mBluetoothAdapter.isEnabled())

@@ -10,9 +10,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 
 import com.practice.myapplication.R;
 import com.practice.myapplication.activity.ConsentActivity;
+import com.practice.myapplication.activity.TestActivity;
 
 /**
  * Created by hagtfms on 2016-04-25.
@@ -25,8 +27,9 @@ public class MainFragment extends Fragment {
         super.onCreateView(inflater, container, savedInstanceState);
         View v = inflater.inflate(R.layout.fragment_main, container, false);
 
-        Button button = (Button)v.findViewById(R.id.btn_fm_play);
-        button.setOnClickListener(new View.OnClickListener() {
+        ImageView playImageView = (ImageView)v.findViewById(R.id.iv_fmain_play);
+        ImageView testImageView = (ImageView)v.findViewById(R.id.iv_fmain_test);
+        playImageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent i = new Intent(getActivity(), ConsentActivity.class);
@@ -34,6 +37,16 @@ public class MainFragment extends Fragment {
                 getActivity().overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
             }
         });
+        testImageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(getActivity(), TestActivity.class);
+                startActivity(i);
+                getActivity().overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+            }
+        });
+
+
         /**
          * http://egloos.zum.com/javalove/v/67828
          */

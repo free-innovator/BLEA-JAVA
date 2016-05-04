@@ -106,7 +106,7 @@ public class ConsentActivity extends Activity {
 
     private void checkSwitch(){
         if(mSwitchBluetooth.isChecked() && mSwitchGPS.isChecked() && mSwitchPermission.isChecked()){
-            Intent i = new Intent(ConsentActivity.this, TestActivity.class);
+            Intent i = new Intent(ConsentActivity.this, PlayActivity.class);
             startActivity(i);
             overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
             finish();
