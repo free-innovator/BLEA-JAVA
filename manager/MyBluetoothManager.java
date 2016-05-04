@@ -3,6 +3,7 @@ package com.practice.myapplication.manager;
 import android.Manifest;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
@@ -27,10 +28,11 @@ import java.util.List;
  * Created by hagtfms on 2016-04-18.
  */
 public class MyBluetoothManager {
-    private static BluetoothAdapter mBluetoothAdapter = null;
+    private static final String TAG = "MyBluetoothManager";
 
+    private static BluetoothAdapter mBluetoothAdapter = null;
     private static IBeaconData mIBeaconData = null;
-    private static boolean mIsIBeaconScaiing = false;
+    private static boolean mIsIBeaconScanning = false;
 
     private static Activity curActivity = null;
 
@@ -48,8 +50,8 @@ public class MyBluetoothManager {
     }
 
     public static boolean isEnabled(){
-        if(curActivity != null) {
-            if (mBluetoothAdapter != null && ContextCompat.checkSelfPermission(
+        if(curActivity != null && mBluetoothAdapter != null) {
+            if (ContextCompat.checkSelfPermission(
                     curActivity, Manifest.permission.ACCESS_FINE_LOCATION)
                     == PackageManager.PERMISSION_GRANTED) {
                 return mBluetoothAdapter.isEnabled();
@@ -85,27 +87,17 @@ public class MyBluetoothManager {
         return false;
     }
     public static boolean startScanForIBeacon() {
-        if (curActivity != null){
-            if (ContextCompat.checkSelfPermission(curActivity, Manifest.permission.ACCESS_FINE_LOCATION)
-                    == PackageManager.PERMISSION_GRANTED
-                    && MyBluetoothManager.isEnabled() && !mIsIBeaconScaiing) {
-                if (mBLEScanner == null) {
-                    mBLEScanner = mBluetoothAdapter.getBluetoothLeScanner();
-                    if (mBLEScanner == null) return false;
-                }
-
-                ScanSettings scanSettings = new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build();
-                mBLEScanner.startScan(null, scanSettings, mIBeaconScanCallback);
-                mIsIBeaconScaiing = true;
-                return true;
-            }
+        if (MyBluetoothManager.isEnabled()) {
+            mBluetoothAdapter.startLeScan(mIBeaconScanCallback);
+            mIsIBeaconScanning = true;
+            return true;
         }
         return false;
     }
     public static void stopScanForIBeacon(){
-        if(mBLEScanner != null){
-            mBLEScanner.stopScan(mIBeaconScanCallback);
-            mIsIBeaconScaiing = false;
+        if(mBluetoothAdapter != null){
+            mBluetoothAdapter.stopLeScan(mIBeaconScanCallback);
+            mIsIBeaconScanning = false;
         }
     }
 
@@ -129,21 +121,15 @@ public class MyBluetoothManager {
         }
         return new String(hexChars);
     }
-    private static final ScanCallback mIBeaconScanCallback = new ScanCallback(){
-        @Override
-        public void onScanResult(int callbackType, ScanResult result){
-            super.onScanResult(callbackType, result);
-            Log.i("onScanResult", "callbackType : " + callbackType);
+    private static final BluetoothAdapter.LeScanCallback mIBeaconScanCallback =
+        new BluetoothAdapter.LeScanCallback() {
+            @Override
+            public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
+                Log.d(TAG, "onLeScan : " + device.getAddress());
 
-//            mBLEScanner.stopScan(this);
-//            mIsIBeaconScaiing = false;
-
-            /**
-             * http://blog.conjure.co.uk/2014/08/ibeacons-and-android-parsing-the-uuid-major-and-minor-values/
-             */
-            if(result.getScanRecord() != null){
-                byte[] scanRecord = result.getScanRecord().getBytes();
-
+                /**
+                 * http://blog.conjure.co.uk/2014/08/ibeacons-and-android-parsing-the-uuid-major-and-minor-values/
+                 */
                 int startByte = 2;
                 boolean patternFound = false;
                 while (startByte <= 5) {
@@ -177,23 +163,12 @@ public class MyBluetoothManager {
                         //Here is your Minor value
                         minor = (scanRecord[startByte + 22] & 0xff) * 0x100 + (scanRecord[startByte + 23] & 0xff);
                     }
-                /* end copy **/
+                    /* end copy **/
 
-                    mIBeaconData = new IBeaconData(uuid, major, minor, result.getRssi());
+                    mIBeaconData = new IBeaconData(uuid, major, minor, rssi);
                 }
                 else
                     mIBeaconData = null;
             }
-        }
-        @Override
-        public void onBatchScanResults(List<ScanResult> results){
-            super.onBatchScanResults(results);
-            Log.i("onBatchScanResults", "onBatchScanResults");
-        }
-        @Override
-        public void onScanFailed(int errorCode){
-            super.onScanFailed(errorCode);
-            Log.i("onScanFailed", "errorCode : " + errorCode);
-        }
-    };
+        };
 }

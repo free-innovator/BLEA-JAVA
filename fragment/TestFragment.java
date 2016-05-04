@@ -13,6 +13,7 @@ import android.widget.TextView;
 import com.practice.myapplication.R;
 import com.practice.myapplication.data.IBeaconData;
 import com.practice.myapplication.manager.MyBluetoothManager;
+import com.practice.myapplication.manager.MyGPSManager;
 
 import java.util.Timer;
 import java.util.TimerTask;

@@ -69,6 +69,8 @@ public class TestActivity extends Activity {
         mTvRssi = (TextView)findViewById(R.id.tv_atest_rssi);
         mTvOnoff = (TextView)findViewById(R.id.tv_atest_onoff);
 
+        MyBluetoothManager.initSetting(this);
+        MyGPSManager.initSetting(this);
 
         final SharedPreferences prefs =
                 getSharedPreferences(STR_PREFERENCES_NAME, Context.MODE_PRIVATE);
