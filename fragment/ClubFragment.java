@@ -39,7 +39,7 @@ public class ClubFragment extends Fragment {
         /**
          * reference : http://kd3302.tistory.com/85
          */
-        mAdapter = new CustomAdapter(MyDBManager.getClubList(getActivity()));
+        mAdapter = new CustomAdapter(MyDBManager.getClubList());
         mListView = (ListView) v.findViewById(R.id.lv_fclub_list);
         mListView.setAdapter(mAdapter);
 
@@ -133,7 +133,7 @@ public class ClubFragment extends Fragment {
                             try{
                                 int meter = Integer.parseInt(editText.getText().toString());
                                 MyDBManager.updateClubList(getActivity(), new ClubData(clubData.getName(), meter));
-                                setList(MyDBManager.getClubList(getActivity()));
+                                setList(MyDBManager.getClubList());
                                 refresh();
                             }
                             catch(NumberFormatException e){

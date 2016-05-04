@@ -6,6 +6,9 @@ import android.os.Bundle;
 import android.os.Handler;
 
 import com.practice.myapplication.R;
+import com.practice.myapplication.manager.MyBluetoothManager;
+import com.practice.myapplication.manager.MyDBManager;
+import com.practice.myapplication.manager.MyGPSManager;
 
 /**
  * Created by hagtfms on 2016-04-17.
@@ -19,6 +22,10 @@ public class IntroActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_intro);
+
+        MyBluetoothManager.initSetting(this);
+        MyGPSManager.initSetting(this);
+        MyDBManager.initSetting(this);
 
         mAnimRun = new Runnable(){
             @Override

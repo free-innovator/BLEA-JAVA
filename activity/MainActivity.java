@@ -141,8 +141,9 @@ public class MainActivity extends FragmentActivity {
 
             switch(reqNewFragmentIndex){
                 case FRAG_NUM.MAIN:
-                    mTitleTextView.setPaintFlags(mTitleTextView.getPaintFlags() &~ Paint.FAKE_BOLD_TEXT_FLAG);
-                    mTitleTextView.setText("Golf dic");
+                    //mTitleTextView.setPaintFlags(mTitleTextView.getPaintFlags() &~ Paint.FAKE_BOLD_TEXT_FLAG);
+                    mTitleTextView.setPaintFlags(mTitleTextView.getPaintFlags() | Paint.FAKE_BOLD_TEXT_FLAG);
+                    mTitleTextView.setText("메인");
                     break;
                 case FRAG_NUM.SCORECARD:
                     mTitleTextView.setPaintFlags(mTitleTextView.getPaintFlags() | Paint.FAKE_BOLD_TEXT_FLAG);

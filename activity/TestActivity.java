@@ -44,7 +44,11 @@ public class TestActivity extends Activity {
     private TextView mTvLongitude;
     private TextView mTvProvider;
     private TextView mTvAccuracy;
+
     private TextView mTvRssi;
+    private TextView mTvMajor;
+    private TextView mTvMinor;
+    private TextView mTvUuid;
     private TextView mTvOnoff;
 
     private boolean isTCupSetting = false;
@@ -66,11 +70,12 @@ public class TestActivity extends Activity {
         mTvLongitude = (TextView)findViewById(R.id.tv_atest_longitude);
         mTvProvider = (TextView)findViewById(R.id.tv_atest_provider);
         mTvAccuracy = (TextView)findViewById(R.id.tv_atest_accuracy);
-        mTvRssi = (TextView)findViewById(R.id.tv_atest_rssi);
-        mTvOnoff = (TextView)findViewById(R.id.tv_atest_onoff);
 
-        MyBluetoothManager.initSetting(this);
-        MyGPSManager.initSetting(this);
+        mTvRssi = (TextView)findViewById(R.id.tv_atest_rssi);
+        mTvMajor = (TextView)findViewById(R.id.tv_atest_major);
+        mTvMinor = (TextView)findViewById(R.id.tv_atest_minor);
+        mTvUuid = (TextView)findViewById(R.id.tv_atest_uuid);
+        mTvOnoff = (TextView)findViewById(R.id.tv_atest_onoff);
 
         final SharedPreferences prefs =
                 getSharedPreferences(STR_PREFERENCES_NAME, Context.MODE_PRIVATE);
@@ -114,7 +119,7 @@ public class TestActivity extends Activity {
         MyBluetoothManager.startScanForIBeacon();
         mScanTimer = new Timer(true);
         if(mScanTimer != null){
-            mScanTimer.schedule(new MyTimerTask(), 0, 500);
+            mScanTimer.schedule(new MyTimerTask(), 0, 300);
         }
     }
 
@@ -131,6 +136,7 @@ public class TestActivity extends Activity {
             mScanTimer = null;
         }
         MyGPSManager.setListener(false);
+        MyBluetoothManager.stopScanForIBeacon();
     }
 
     @Override
@@ -141,6 +147,7 @@ public class TestActivity extends Activity {
             mScanTimer.schedule(new MyTimerTask(), 0, 500);
         }
         MyGPSManager.setListener(true);
+        MyBluetoothManager.startScanForIBeacon();
     }
 
     @Override
@@ -150,6 +157,7 @@ public class TestActivity extends Activity {
             mScanTimer = null;
         }
         MyGPSManager.setListener(false);
+        MyBluetoothManager.stopScanForIBeacon();
         super.finish();
     }
 
@@ -193,6 +201,9 @@ public class TestActivity extends Activity {
                             @Override
                             public void run() {
                                 if(mTvRssi != null) mTvRssi.setText("RSSI = " + prevIBeaconData.getRssi());
+                                if(mTvMajor != null) mTvMajor.setText("Major = " + prevIBeaconData.getMajor());
+                                if(mTvMinor != null) mTvMinor.setText("Minor = " + prevIBeaconData.getMinor());
+                                if(mTvUuid != null) mTvUuid.setText(prevIBeaconData.getUuid());
                             }
                         });
                     }

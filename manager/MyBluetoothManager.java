@@ -24,8 +24,13 @@ import com.practice.myapplication.data.IBeaconData;
 
 import java.util.List;
 
+/*
+    startLeScan과 stopLeScan을 사용한 이유는 API 21 Level -> API 18 Level로 떨어트리기 위함입니다.
+    주석을 따로 적은 이유는 javadoc과 겹치기 않게 하기 위함입니다. (어차피 내용도 별로 없지만요 ㅠ)
+ */
 /**
  * Created by hagtfms on 2016-04-18.
+ *
  */
 public class MyBluetoothManager {
     private static final String TAG = "MyBluetoothManager";
