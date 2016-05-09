@@ -1,15 +1,19 @@
 package com.practice.myapplication.manager;
 
 import android.app.Activity;
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 
 import com.practice.myapplication.data.ClubData;
+import com.practice.myapplication.data.GroundData;
+import com.practice.myapplication.data.GroundMapData;
 import com.practice.myapplication.data.ScoreData;
 import com.practice.myapplication.data.StoreData;
 
@@ -18,6 +22,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -79,7 +84,7 @@ public class MyDBManager {
     public static String getTactic(final int groundId){
         return MyInternetManager.getStringFromURL("/php/getTactic.php?id="+groundId);
     }
-    public static ScoreData getScore(final int gameid){
+    public static ScoreData getScoreData(final int gameid){
         String json = MyInternetManager.getStringFromURL("/php/getScore.php?id="+gameid);
 
         ScoreData scoreData = null;
@@ -114,6 +119,73 @@ public class MyDBManager {
 
         return scoreData;
     }
+    public static GroundData getGroundData(final int storeid, final int groundid){
+        String json = MyInternetManager.getStringFromURL("/php/getGround.php?" +
+                "sid="+storeid+"&" +
+                "gid="+groundid);
+
+        GroundData groundData = null;
+        try{
+            JSONObject root = new JSONObject(json);
+            JSONArray jsonArray = root.getJSONArray("results");
+            for(int i=0; i<jsonArray.length(); i++){
+                JSONObject jsonObject = jsonArray.getJSONObject(i);
+                groundData = new GroundData(
+                        jsonObject.getInt("regFigure"),
+                        jsonObject.getString("tactic"),
+                        jsonObject.getString("imageUrl"),
+                        jsonObject.getInt("imageVer")
+                );
+            }
+        }catch(JSONException e){
+            e.printStackTrace();
+        }
+
+        return groundData;
+    }
+    public static GroundMapData getGroundMapData(final int storeid, final int groundid){
+        GroundMapData groundMapData = null;
+        if(mDBOpenHelper != null){
+            SQLiteDatabase db = mDBOpenHelper.getReadableDatabase();
+            Cursor c = db.rawQuery("select * from "+ GroundMapData.TABLE_NAME +" where "+
+                    GroundMapData.COLUMN_NAME_STOREID+"="+storeid+" and "+
+                    GroundMapData.COLUMN_NAME_GROUNDID+"="+groundid, null);
+
+            if(c.getCount() != 0){
+                c.moveToFirst();
+
+                byte[] bytes = c.getBlob(c.getColumnIndexOrThrow(GroundMapData.COLUMN_NAME_MAPSTREAM));
+                Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+
+                groundMapData = new GroundMapData(
+                        c.getInt(c.getColumnIndexOrThrow(GroundMapData.COLUMN_NAME_STOREID)),
+                        c.getInt(c.getColumnIndexOrThrow(GroundMapData.COLUMN_NAME_GROUNDID)),
+                        bitmap);
+            }
+
+            c.close();
+            db.close();
+        }
+        return groundMapData;
+    }
+
+    public static boolean insertGroundMap(Bitmap bitmap, final int storeid, final int groundid){
+        if(mDBOpenHelper != null){
+            SQLiteDatabase db = mDBOpenHelper.getWritableDatabase();
+
+            ByteArrayOutputStream stream = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
+
+            ContentValues values = new ContentValues();
+            values.put(GroundMapData.COLUMN_NAME_STOREID, storeid);
+            values.put(GroundMapData.COLUMN_NAME_GROUNDID, groundid);
+            values.put(GroundMapData.COLUMN_NAME_MAPSTREAM, stream.toByteArray());
+
+            db.insert(GroundMapData.TABLE_NAME, null, values);
+            return true;
+        }
+        return false;
+    }
 
     public static boolean updateClubList(Context context, ClubData clubData){
         if(mDBOpenHelper != null){
@@ -127,33 +199,13 @@ public class MyDBManager {
             return false;
     }
 
-    public static void insertImage(Bitmap bitmap){
-        if(mDBOpenHelper != null){
-            SQLiteDatabase db = mDBOpenHelper.getReadableDatabase();
-            Cursor c = db.rawQuery("select * from "+ClubData.TABLE_NAME, null);
-
-            ArrayList<ClubData> clubList = new ArrayList<ClubData>();
-            if(c.getCount() != 0){
-                c.moveToFirst();
-                do{
-                    clubList.add(new ClubData(
-                            c.getString(c.getColumnIndexOrThrow(ClubData.COLUMN_NAME_NAME)),
-                            c.getInt(c.getColumnIndexOrThrow(ClubData.COLUMN_NAME_METER))));
-                }while(c.moveToNext());
-            }
-
-            c.close();
-            db.close();
-        }
-    }
-
     @Override
     protected void finalize() throws Throwable{
         super.finalize();
     }
 
     private static class MyDbOpenHelper extends SQLiteOpenHelper{
-        public static final int DATABASE_VERSION = 1;
+        public static final int DATABASE_VERSION = 2;
         public static final String DATABASE_NAME = "Golf.db";
 
         public MyDbOpenHelper(Context context){
@@ -173,7 +225,11 @@ public class MyDBManager {
                     "('4st', null)," +
                     "('5st', null)");
 
-            //db.execSQL("CREATE TABLE ");
+            db.execSQL("CREATE TABLE "+GroundMapData.TABLE_NAME+" (" +
+                    GroundMapData.COLUMN_NAME_STOREID + " integer not null, " +
+                    GroundMapData.COLUMN_NAME_GROUNDID + " integer not null, " +
+                    GroundMapData.COLUMN_NAME_MAPSTREAM + " blob not null, " +
+                    "primary key("+GroundMapData.COLUMN_NAME_STOREID+","+GroundMapData.COLUMN_NAME_GROUNDID+"))");
         }
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion){
             db.execSQL("DROP TABLE IF EXISTS tbl_club");

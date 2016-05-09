@@ -22,7 +22,7 @@ public class ScoreCardFragment extends Fragment {
         View v = inflater.inflate(R.layout.fragment_scorecard, container, false);
 
         TextView textView = (TextView)v.findViewById(R.id.tv_fscore_text);
-        ScoreData scoreData = MyDBManager.getScore(4);
+        ScoreData scoreData = MyDBManager.getScoreData(4);
 
         if(scoreData != null){
             StringBuilder stringBuilder = new StringBuilder();

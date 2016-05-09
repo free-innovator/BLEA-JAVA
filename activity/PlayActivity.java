@@ -4,19 +4,30 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 
 import com.practice.myapplication.R;
+import com.practice.myapplication.data.GroundData;
+import com.practice.myapplication.data.GroundMapData;
+import com.practice.myapplication.manager.MyDBManager;
+import com.practice.myapplication.manager.MyInternetManager;
 
 /**
  * Created by hagtfms on 2016-04-30.
  */
 public class PlayActivity extends Activity {
-    private Button mTacticButton;
-    private Button mStageButton;
+    private ImageView mTacticImageView;
+    private ImageView mStageImageView;
+
+    private GroundData mGroundData;
+    private GroundMapData mGroundMapData;
 
     private double mTcupLaditude, mTcupLongitude;
     private double mHcupLaditude, mHcupLongitude;
@@ -35,10 +46,10 @@ public class PlayActivity extends Activity {
             mHcupLongitude = prefs.getFloat(TestActivity.STR_HCUP_LOC_LONGITUDE, 0.0f);
         }
 
-        mTacticButton = (Button)findViewById(R.id.btn_aplay_tactic);
-        mStageButton = (Button)findViewById(R.id.btn_aplay_stage);
+        mTacticImageView = (ImageView)findViewById(R.id.iv_aplay_tactic);
+        mStageImageView = (ImageView)findViewById(R.id.iv_aplay_stage);
 
-        mTacticButton.setOnClickListener(new View.OnClickListener() {
+        mTacticImageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent i = new Intent(PlayActivity.this, TacticActivity.class);
@@ -46,7 +57,7 @@ public class PlayActivity extends Activity {
                 overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
             }
         });
-        mStageButton.setOnClickListener(new View.OnClickListener() {
+        mStageImageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent i = new Intent(PlayActivity.this, StageActivity.class);
@@ -54,6 +65,21 @@ public class PlayActivity extends Activity {
                 overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
             }
         });
+
+        mGroundData = MyDBManager.getGroundData(20000, 3);
+        mGroundMapData = MyDBManager.getGroundMapData(20000, 3);
+        if(mGroundMapData == null) {
+            if (mGroundData != null) {
+                Bitmap bitmap = MyInternetManager.getBitmapFromURL("/map/" + mGroundData.getImageURL());
+                MyDBManager.insertGroundMap(bitmap, 20000, 3);
+                mGroundMapData = MyDBManager.getGroundMapData(20000, 3);
+            }
+        }
+
+        if(mGroundMapData != null){
+            ImageView imageView = (ImageView)findViewById(R.id.iv_apaly_groundmap);
+            imageView.setBackground(new BitmapDrawable(getResources(), mGroundMapData.getBitmap()));
+        }
     }
 
     @Override
