@@ -110,7 +110,9 @@ public class MyDBManager {
                         jsonObject.getInt("s13"),
                         jsonObject.getInt("s14"),
                         jsonObject.getInt("s15"),
-                        jsonObject.getInt("s16")
+                        jsonObject.getInt("s16"),
+                        jsonObject.getInt("s17"),
+                        jsonObject.getInt("s18")
                 );
             }
         }catch(JSONException e){
@@ -169,8 +171,8 @@ public class MyDBManager {
         return groundMapData;
     }
 
-    public static boolean insertGroundMap(Bitmap bitmap, final int storeid, final int groundid){
-        if(mDBOpenHelper != null){
+    public static boolean insertGroundMap(@NonNull Bitmap bitmap, final int storeid, final int groundid){
+        if(mDBOpenHelper != null && bitmap != null){
             SQLiteDatabase db = mDBOpenHelper.getWritableDatabase();
 
             ByteArrayOutputStream stream = new ByteArrayOutputStream();

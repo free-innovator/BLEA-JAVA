@@ -80,6 +80,13 @@ public class TestActivity extends Activity {
         final SharedPreferences prefs =
                 getSharedPreferences(STR_PREFERENCES_NAME, Context.MODE_PRIVATE);
 
+        if(prefs != null){
+            mTvTCup.setText(prefs.getFloat(TestActivity.STR_TCUP_LOC_LADITUDE, 0.0f) + ", "
+                    + prefs.getFloat(TestActivity.STR_TCUP_LOC_LONGITUDE, 0.0f));
+            mTvHCup.setText(prefs.getFloat(TestActivity.STR_HCUP_LOC_LADITUDE, 0.0f) + ", "
+                    + prefs.getFloat(TestActivity.STR_HCUP_LOC_LONGITUDE, 0.0f));
+        }
+
         mTCupButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -119,7 +126,7 @@ public class TestActivity extends Activity {
         MyBluetoothManager.startScanForIBeacon();
         mScanTimer = new Timer(true);
         if(mScanTimer != null){
-            mScanTimer.schedule(new MyTimerTask(), 0, 300);
+            mScanTimer.schedule(new MyTimerTask(), 0, 200);
         }
     }
 

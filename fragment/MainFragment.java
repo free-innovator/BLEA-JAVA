@@ -27,8 +27,8 @@ public class MainFragment extends Fragment {
         super.onCreateView(inflater, container, savedInstanceState);
         View v = inflater.inflate(R.layout.fragment_main, container, false);
 
-        ImageView playImageView = (ImageView)v.findViewById(R.id.iv_fmain_play);
-        ImageView testImageView = (ImageView)v.findViewById(R.id.iv_fmain_test);
+        Button playImageView = (Button)v.findViewById(R.id.btn_fmain_play);
+        Button testImageView = (Button)v.findViewById(R.id.btn_fmain_test);
         playImageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

@@ -151,7 +151,7 @@ public class MainActivity extends FragmentActivity {
                     break;
                 case FRAG_NUM.STORE:
                     mTitleTextView.setPaintFlags(mTitleTextView.getPaintFlags() | Paint.FAKE_BOLD_TEXT_FLAG);
-                    mTitleTextView.setText("매장정보");
+                    mTitleTextView.setText("매장리스트");
                     break;
                 case FRAG_NUM.CLUB:
                     mTitleTextView.setPaintFlags(mTitleTextView.getPaintFlags() | Paint.FAKE_BOLD_TEXT_FLAG);
