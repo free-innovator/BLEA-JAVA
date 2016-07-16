@@ -2,6 +2,7 @@ package com.practice.myapplication.activity;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -9,6 +10,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Point;
 import android.graphics.drawable.BitmapDrawable;
 import android.location.Location;
 import android.location.LocationManager;
@@ -17,13 +19,20 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.text.Layout;
 import android.util.AttributeSet;
+import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Display;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.PopupWindow;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.practice.myapplication.R;
@@ -48,11 +57,16 @@ public class PlayActivity extends Activity {
     private final int MIN_ACCURACY = 99999;
     private final long PERIOD = 200;
 
+    private static int mWidthPixels = 0, mHeightPixels = 0;
+
     private Handler mHandler;
     private Timer mScanTimer;
+    private static PopupWindow mPopupWindow = null;
 
-    private long mDelayTime;
+    private static long mDelayTime;
     private boolean mPowerOn = false;
+
+    private View mTacTicLayout, mScoreLayout;
 
     //private ImageView mTacticImageView;
     //private ImageView mStageImageView;
@@ -61,7 +75,7 @@ public class PlayActivity extends Activity {
     private TextView mTvRssi;
     private TextView mTvAcc;
 
-    private GroundData mGroundData;
+    private static GroundData mGroundData;
     private GroundMapData mGroundMapData;
 
     private double mTcupLaditude, mTcupLongitude;
@@ -89,6 +103,19 @@ public class PlayActivity extends Activity {
         else
             setContentView(R.layout.activity_play);
 
+        Point realSize = new Point();
+        try{
+            WindowManager w = getWindowManager();
+            Display d = w.getDefaultDisplay();
+            Display.class.getMethod("getRealSize", Point.class).invoke(d, realSize);
+            mWidthPixels = realSize.x;
+            mHeightPixels = realSize.y;
+        }catch (Exception ignored){
+        }
+
+
+        mTacTicLayout = getLayoutInflater().inflate(R.layout.popup_tactic, null);
+        mScoreLayout = getLayoutInflater().inflate(R.layout.popup_score, null);
         mTvRssi = (TextView)findViewById(R.id.tv_aplay_rssi);
         mTvAcc = (TextView)findViewById(R.id.tv_aplay_acc);
 
@@ -242,11 +269,17 @@ public class PlayActivity extends Activity {
             IBeaconData iBeaconData = MyBluetoothManager.getIBeaconData();
             if(iBeaconData != null){
                 if(!iBeaconData.equals(prevIBeaconData)){
-                    mDelayTime = 0;
-                    if(mPowerOn){
-                        // tactic
+                    if(!mPowerOn && iBeaconData.getMajor() == 20000 && iBeaconData.getMinor() == 3){
+                        Log.d(TAG, "popup TacTic");
+                        mPowerOn = true;
+                        mHandler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                showTacTic();
+                            }
+                        });
                     }
-                    mPowerOn = true;
+
                     prevIBeaconData = iBeaconData;
 
                     if(prevIBeaconData != null){
@@ -260,12 +293,48 @@ public class PlayActivity extends Activity {
                 }
                 else{
                     mDelayTime += PERIOD;
-                    if(mPowerOn && mDelayTime >= 3000){
+                    Log.d(TAG, "mDelayTime = " + mDelayTime);
+                    if(mPowerOn && mDelayTime >= 5000 && iBeaconData.getMajor() == 20000 && iBeaconData.getMinor() == 3){
                         mPowerOn = false;
                         // score
                     }
                 }
             }
+        }
+    }
+
+    /*
+     * 제대로 만드려면 callback함수로 MyBluetoothManager로 넘겨줄 것.
+     */
+    public static void setDelayZero(){
+        mDelayTime = 0;
+    }
+
+    private void showTacTic(){
+        if(mTacTicLayout != null){
+            if(mPopupWindow != null) mPopupWindow.dismiss();
+            mPopupWindow = new PopupWindow(mTacTicLayout, (int)(mWidthPixels*0.9), (int)(mHeightPixels*0.5), true);
+            mPopupWindow.showAtLocation(mTacTicLayout, Gravity.CENTER, 0, 0);
+
+            mTacTicLayout.post(new Runnable() {
+                @Override
+                public void run() {
+                    if(mPopupWindow != null) mPopupWindow.dismiss();
+                    mPopupWindow.showAtLocation(mTacTicLayout, Gravity.CENTER, 0, 0);
+                }
+            });
+
+
+            if(mGroundData != null){
+                TextView textView = (TextView)mTacTicLayout.findViewById(R.id.tv_ptac_tactic);
+                textView.setText(mGroundData.getTactic());
+            }
+            mTacTicLayout.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    mPopupWindow.dismiss();
+                }
+            });
         }
     }
 }

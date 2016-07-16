@@ -20,6 +20,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.practice.myapplication.R;
+import com.practice.myapplication.activity.PlayActivity;
 import com.practice.myapplication.data.IBeaconData;
 
 import java.util.List;
@@ -131,6 +132,7 @@ public class MyBluetoothManager {
             @Override
             public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
                 Log.d(TAG, "onLeScan : " + device.getAddress());
+                PlayActivity.setDelayZero();
 
                 /**
                  * http://blog.conjure.co.uk/2014/08/ibeacons-and-android-parsing-the-uuid-major-and-minor-values/
