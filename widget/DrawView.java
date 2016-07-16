@@ -65,9 +65,6 @@ public class DrawView extends View {
         paint.setColor(Color.RED);
         canvas.drawCircle(mWindowWidth*0.7f, mWindowHeight*0.85f, 50, paint);
 
-        paint.setColor(Color.YELLOW);
-        canvas.drawCircle(mWindowWidth*0.3f, mWindowHeight*0.85f, 50, paint);
-
         paint.setColor(Color.GREEN);
         canvas.drawCircle(mPosX, mPosY, 50, paint);
 

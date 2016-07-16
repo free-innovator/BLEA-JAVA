@@ -81,9 +81,10 @@ public class MyDBManager {
 
         return storeList;
     }
+    /*
     public static String getTactic(final int groundId){
         return MyInternetManager.getStringFromURL("/php/getTactic.php?id="+groundId);
-    }
+    }*/
     public static ScoreData getScoreData(final int gameid){
         String json = MyInternetManager.getStringFromURL("/php/getScore.php?id="+gameid);
 

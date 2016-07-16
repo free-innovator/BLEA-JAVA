@@ -45,12 +45,18 @@ import java.util.TimerTask;
  */
 public class PlayActivity extends Activity {
     private final String TAG = "PalyActivity";
+    private final int MIN_ACCURACY = 99999;
+    private final long PERIOD = 200;
 
     private Handler mHandler;
     private Timer mScanTimer;
 
+    private long mDelayTime;
+    private boolean mPowerOn = false;
+
     //private ImageView mTacticImageView;
     //private ImageView mStageImageView;
+    private Button mTacticButton;
 
     private TextView mTvRssi;
     private TextView mTvAcc;
@@ -146,7 +152,6 @@ public class PlayActivity extends Activity {
             e.printStackTrace();
         }*/
 
-
         if(mGroundMapData != null){
             ImageView imageView = (ImageView)findViewById(R.id.iv_apaly_groundmap);
             //imageView.setBackground(new BitmapDrawable(getResources(), mGroundMapData.getBitmap()));
@@ -158,7 +163,8 @@ public class PlayActivity extends Activity {
         MyBluetoothManager.startScanForIBeacon();
         mScanTimer = new Timer(true);
         if(mScanTimer != null){
-            mScanTimer.schedule(new MyTimerTask(), 0, 200);
+            mScanTimer.schedule(new MyTimerTask(), 0, PERIOD);
+            mPowerOn = false;
         }
     }
 
@@ -216,7 +222,7 @@ public class PlayActivity extends Activity {
                             @Override
                             public void run() {
                                 if(mTvAcc != null) mTvAcc.setText(String.valueOf(prevLocation.getAccuracy()));
-                                if(prevLocation.getAccuracy() < 40){
+                                if(prevLocation.getAccuracy() < MIN_ACCURACY){
                                     if(dmDrawView != null){
                                         double lati = prevLocation.getLatitude(), longi = prevLocation.getLongitude();
                                         double x = longi*s + lati*u;
@@ -236,6 +242,11 @@ public class PlayActivity extends Activity {
             IBeaconData iBeaconData = MyBluetoothManager.getIBeaconData();
             if(iBeaconData != null){
                 if(!iBeaconData.equals(prevIBeaconData)){
+                    mDelayTime = 0;
+                    if(mPowerOn){
+                        // tactic
+                    }
+                    mPowerOn = true;
                     prevIBeaconData = iBeaconData;
 
                     if(prevIBeaconData != null){
@@ -245,6 +256,13 @@ public class PlayActivity extends Activity {
                                 if(mTvRssi != null) mTvRssi.setText(String.valueOf(prevIBeaconData.getRssi()));
                             }
                         });
+                    }
+                }
+                else{
+                    mDelayTime += PERIOD;
+                    if(mPowerOn && mDelayTime >= 3000){
+                        mPowerOn = false;
+                        // score
                     }
                 }
             }
