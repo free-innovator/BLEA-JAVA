@@ -202,6 +202,11 @@ public class MyDBManager {
             return false;
     }
 
+    public static boolean setScore(final int i){
+        MyInternetManager.getStringFromURL("/php/setScore.php?score="+i);
+        return true;
+    }
+
     @Override
     protected void finalize() throws Throwable{
         super.finalize();

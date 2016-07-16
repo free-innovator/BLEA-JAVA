@@ -28,6 +28,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -209,6 +210,8 @@ public class PlayActivity extends Activity {
         }
         MyGPSManager.setListener(false);
         MyBluetoothManager.stopScanForIBeacon();
+        mPowerOn = false;
+        setDelayZero();
     }
 
     @Override
@@ -230,6 +233,8 @@ public class PlayActivity extends Activity {
         }
         MyGPSManager.setListener(false);
         MyBluetoothManager.stopScanForIBeacon();
+        mPowerOn = false;
+        setDelayZero();
         super.finish();
     }
 
@@ -269,15 +274,18 @@ public class PlayActivity extends Activity {
             IBeaconData iBeaconData = MyBluetoothManager.getIBeaconData();
             if(iBeaconData != null){
                 if(!iBeaconData.equals(prevIBeaconData)){
-                    if(!mPowerOn && iBeaconData.getMajor() == 20000 && iBeaconData.getMinor() == 3){
-                        Log.d(TAG, "popup TacTic");
+                    if(!mPowerOn){
                         mPowerOn = true;
-                        mHandler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                showTacTic();
-                            }
-                        });
+                        if(iBeaconData.getMajor() == 20000 && iBeaconData.getMinor() == 3) {
+                            Log.d(TAG, "popup TacTic");
+                            mPowerOn = true;
+                            mHandler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    showTacTic();
+                                }
+                            });
+                        }
                     }
 
                     prevIBeaconData = iBeaconData;
@@ -292,11 +300,22 @@ public class PlayActivity extends Activity {
                     }
                 }
                 else{
-                    mDelayTime += PERIOD;
+
                     Log.d(TAG, "mDelayTime = " + mDelayTime);
-                    if(mPowerOn && mDelayTime >= 5000 && iBeaconData.getMajor() == 20000 && iBeaconData.getMinor() == 3){
-                        mPowerOn = false;
-                        // score
+                    if(mPowerOn){
+                        mDelayTime += PERIOD;
+                        if(mDelayTime >= 5000) {
+                            mPowerOn = false;
+                            mDelayTime = 0;
+                            if (iBeaconData.getMajor() == 20000 && iBeaconData.getMinor() == 3) {
+                                mHandler.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        showScore();
+                                    }
+                                });
+                            }
+                        }
                     }
                 }
             }
@@ -312,29 +331,70 @@ public class PlayActivity extends Activity {
 
     private void showTacTic(){
         if(mTacTicLayout != null){
-            if(mPopupWindow != null) mPopupWindow.dismiss();
-            mPopupWindow = new PopupWindow(mTacTicLayout, (int)(mWidthPixels*0.9), (int)(mHeightPixels*0.5), true);
-            mPopupWindow.showAtLocation(mTacTicLayout, Gravity.CENTER, 0, 0);
+            if(mPopupWindow == null || !mPopupWindow.isShowing()){
+                if(mPopupWindow != null) mPopupWindow.dismiss();
+                mPopupWindow = new PopupWindow(mTacTicLayout, (int)(mWidthPixels*0.9), (int)(mHeightPixels*0.5), true);
+                mPopupWindow.showAtLocation(mTacTicLayout, Gravity.CENTER, 0, 0);
 
-            mTacTicLayout.post(new Runnable() {
-                @Override
-                public void run() {
-                    if(mPopupWindow != null) mPopupWindow.dismiss();
-                    mPopupWindow.showAtLocation(mTacTicLayout, Gravity.CENTER, 0, 0);
+                mTacTicLayout.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        if(mPopupWindow != null) mPopupWindow.dismiss();
+                        mPopupWindow.showAtLocation(mTacTicLayout, Gravity.CENTER, 0, 0);
+                    }
+                });
+
+
+                if(mGroundData != null){
+                    TextView textView = (TextView)mTacTicLayout.findViewById(R.id.tv_ptac_tactic);
+                    textView.setText(mGroundData.getTactic());
                 }
-            });
+                mTacTicLayout.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mPopupWindow.dismiss();
+                    }
+                });
 
-
-            if(mGroundData != null){
-                TextView textView = (TextView)mTacTicLayout.findViewById(R.id.tv_ptac_tactic);
-                textView.setText(mGroundData.getTactic());
             }
-            mTacTicLayout.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    mPopupWindow.dismiss();
+        }
+    }
+
+    private void showScore(){
+        if(mTacTicLayout != null){
+            if(mPopupWindow == null || !mPopupWindow.isShowing()){
+                if(mPopupWindow != null) mPopupWindow.dismiss();
+                mPopupWindow = new PopupWindow(mScoreLayout, (int)(mWidthPixels*0.9), (int)(mHeightPixels*0.5), true);
+                mPopupWindow.showAtLocation(mScoreLayout, Gravity.CENTER, 0, 0);
+
+                mTacTicLayout.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        if(mPopupWindow != null) mPopupWindow.dismiss();
+                        mPopupWindow.showAtLocation(mScoreLayout, Gravity.CENTER, 0, 0);
+                    }
+                });
+
+                final EditText editText = (EditText)mScoreLayout.findViewById(R.id.ed_psco_score);
+                final Button button = (Button)mScoreLayout.findViewById(R.id.btn_psco_input);
+                button.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        try{
+                            int i = Integer.parseInt(editText.getText().toString().trim());
+                            if(-3 <= i && i <= 5){
+                                MyDBManager.setScore(i);
+                            }
+                        }catch(Exception ignore){
+                        }
+                    }
+                });
+
+                if(mGroundData != null){
+                    TextView textView = (TextView)mTacTicLayout.findViewById(R.id.tv_ptac_tactic);
+                    textView.setText(mGroundData.getTactic());
                 }
-            });
+            }
         }
     }
 }
