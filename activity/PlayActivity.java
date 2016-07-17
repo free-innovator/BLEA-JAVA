@@ -24,6 +24,7 @@ import android.util.Log;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
@@ -33,6 +34,7 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
+import android.widget.RadioGroup;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -49,12 +51,13 @@ import com.practice.myapplication.widget.DrawView;
 import java.security.MessageDigest;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Created by hagtfms on 2016-04-30.
  */
 public class PlayActivity extends Activity {
-    private final String TAG = "PalyActivity";
+    private final String TAG = "PlayActivity";
     private final int MIN_ACCURACY = 99999;
     private final long PERIOD = 200;
 
@@ -276,9 +279,8 @@ public class PlayActivity extends Activity {
                 if(!iBeaconData.equals(prevIBeaconData)){
                     if(!mPowerOn){
                         mPowerOn = true;
-                        if(iBeaconData.getMajor() == 20000 && iBeaconData.getMinor() == 3) {
+                        if(iBeaconData.getMajor() == 20000 && iBeaconData.getMinor() == 4) {
                             Log.d(TAG, "popup TacTic");
-                            mPowerOn = true;
                             mHandler.post(new Runnable() {
                                 @Override
                                 public void run() {
@@ -300,8 +302,7 @@ public class PlayActivity extends Activity {
                     }
                 }
                 else{
-
-                    Log.d(TAG, "mDelayTime = " + mDelayTime);
+                    Log.i(TAG, "mDelayTime = " + mDelayTime);
                     if(mPowerOn){
                         mDelayTime += PERIOD;
                         if(mDelayTime >= 5000) {
@@ -326,7 +327,7 @@ public class PlayActivity extends Activity {
      * 제대로 만드려면 callback함수로 MyBluetoothManager로 넘겨줄 것.
      */
     public static void setDelayZero(){
-        mDelayTime = 0;
+        //mDelayTime = 0;
     }
 
     private void showTacTic(){
@@ -355,7 +356,6 @@ public class PlayActivity extends Activity {
                         mPopupWindow.dismiss();
                     }
                 });
-
             }
         }
     }
@@ -375,25 +375,85 @@ public class PlayActivity extends Activity {
                     }
                 });
 
-                final EditText editText = (EditText)mScoreLayout.findViewById(R.id.ed_psco_score);
+                final RadioGroup topGroup = (RadioGroup)mScoreLayout.findViewById(R.id.rg_psco_top);
+                final RadioGroup bottomGroup = (RadioGroup)mScoreLayout.findViewById(R.id.rg_psco_bottom);
+
+                topGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+                    private int prevId;
+                    @Override
+                    public void onCheckedChanged(RadioGroup group, int checkedId) {
+                        if(prevId == checkedId) return;
+                        prevId = checkedId;
+                        Log.d(TAG, "top checkedId = "+checkedId);
+                        if(checkedId != -1){
+                            bottomGroup.check(-1);
+                        }
+                    }
+                });
+                bottomGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+                    private int prevId;
+                    @Override
+                    public void onCheckedChanged(RadioGroup group, int checkedId) {
+                        if(prevId == checkedId) return;
+                        prevId = checkedId;
+                        Log.d(TAG, "bottom checkedId = "+checkedId);
+                        if(checkedId != -1){
+                            topGroup.check(-1);
+                        }
+                    }
+                });
+
                 final Button button = (Button)mScoreLayout.findViewById(R.id.btn_psco_input);
                 button.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         try{
-                            int i = Integer.parseInt(editText.getText().toString().trim());
-                            if(-3 <= i && i <= 5){
-                                MyDBManager.setScore(i);
+                            int id = topGroup.getCheckedRadioButtonId();
+                            if(id == -1)
+                                id = bottomGroup.getCheckedRadioButtonId();
+                            if(id == -1) throw new Exception();
+
+                            int input = 0;
+                            switch(id){
+                                case R.id.rb_psco_1:
+                                    input = 1;
+                                    break;
+                                case R.id.rb_psco_2:
+                                    input = 2;
+                                    break;
+                                case R.id.rb_psco_3:
+                                    input = 3;
+                                    break;
+                                case R.id.rb_psco_4:
+                                    input = 4;
+                                    break;
+                                case R.id.rb_psco_5:
+                                    input = 5;
+                                    break;
+                                case R.id.rb_psco_6:
+                                    input = 6;
+                                    break;
+                                case R.id.rb_psco_7:
+                                    input = 7;
+                                    break;
+                                case R.id.rb_psco_8:
+                                    input = 8;
+                                    break;
+                                case R.id.rb_psco_9:
+                                    input = 9;
+                                    break;
+                                case R.id.rb_psco_10:
+                                    input = 10;
+                                    break;
                             }
-                        }catch(Exception ignore){
+
+                            if(input != 0){
+                                MyDBManager.setScore(input);
+                            }
+                        }catch (Exception ignore){
                         }
                     }
                 });
-
-                if(mGroundData != null){
-                    TextView textView = (TextView)mTacTicLayout.findViewById(R.id.tv_ptac_tactic);
-                    textView.setText(mGroundData.getTactic());
-                }
             }
         }
     }
