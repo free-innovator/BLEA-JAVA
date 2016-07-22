@@ -77,7 +77,7 @@ public class PlayActivity extends Activity {
 
     //private ImageView mTacticImageView;
     //private ImageView mStageImageView;
-    private Button mTacticButton;
+    //private Button mStateButton;
 
     private TextView mTvRssi;
     private TextView mTvAcc;
@@ -94,11 +94,27 @@ public class PlayActivity extends Activity {
 
     DrawView dmDrawView = null;
 
+    public void startStateActivity(){
+        Intent i = new Intent(PlayActivity.this, StateActivity.class);
+        startActivity(i);
+        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
-        View view = (View)getLayoutInflater().inflate(R.layout.activity_play, null);
 
+        Point realSize = new Point();
+        try{
+            WindowManager w = getWindowManager();
+            Display d = w.getDefaultDisplay();
+            Display.class.getMethod("getRealSize", Point.class).invoke(d, realSize);
+            mWidthPixels = realSize.x;
+            mHeightPixels = realSize.y;
+        }catch (Exception ignored){
+        }
+
+        View view = (View)getLayoutInflater().inflate(R.layout.activity_play, null);
         if(view != null){
             FrameLayout frameLayout = (FrameLayout)view.findViewById(R.id.fl_aplay_main);
             dmDrawView = new DrawView(this);
@@ -112,17 +128,10 @@ public class PlayActivity extends Activity {
         else
             setContentView(R.layout.activity_play);
 
-        Point realSize = new Point();
-        try{
-            WindowManager w = getWindowManager();
-            Display d = w.getDefaultDisplay();
-            Display.class.getMethod("getRealSize", Point.class).invoke(d, realSize);
-            mWidthPixels = realSize.x;
-            mHeightPixels = realSize.y;
-        }catch (Exception ignored){
-        }
 
 
+
+        //mStateButton = (Button)findViewById(R.id.btn_aplay_state);
         mTacTicLayout = getLayoutInflater().inflate(R.layout.popup_tactic, null);
         mScoreLayout = getLayoutInflater().inflate(R.layout.popup_score, null);
         mTvRssi = (TextView)findViewById(R.id.tv_aplay_rssi);
@@ -270,6 +279,7 @@ public class PlayActivity extends Activity {
         private boolean isCalculation = false;
         @Override
         public void run(){
+            isCalculation = false;
             final IBeaconData iBeaconData = MyBluetoothManager.getIBeaconData();
             if(iBeaconData != null){
                 if(MyBluetoothManager.isPowerOn()){
@@ -289,30 +299,13 @@ public class PlayActivity extends Activity {
                         }
                     }
 
-                    isCalculation = false;
                     if(!iBeaconData.equals(prevIBeaconData)){
                         if(iBeaconData.getMajor() == 20000 && iBeaconData.getMinor() == 3) { // Hcup
                             mHandler.post(new Runnable() {
                                 @Override
                                 public void run() {
-                                    double meter = calculateAccuracy(-77, (double)iBeaconData.getRssi());
-                                    if(mTvRssi != null) mTvRssi.setText(
-                                            String.valueOf((int)meter)+"."+(((int)(meter*10))%10)+"m");
-
-                                    ArrayList<ClubData> list = MyDBManager.getClubList();
-
-                                    int i;
-                                    for(i=list.size()-1; i>=0; i--){
-                                        ClubData data = list.get(i);
-                                        if(meter < data.getMeter()){
-                                            mTvClub.setText(data.getName());
-                                            break;
-                                        }
-                                    }
-                                    if(i==-1){
-                                        mTvClub.setText((list.get(0)).getName());
-                                    }
                                     isCalculation = true;
+                                    recommendClub(calculateAccuracy(-77, (double)iBeaconData.getRssi()));
                                 }
                             });
                         }
@@ -357,10 +350,8 @@ public class PlayActivity extends Activity {
                                         int width = dm.widthPixels;
                                         int height = dm.heightPixels;
 
-                                        if(!isCalculation){
-                                            double meter = calculateDistance(x/width, y/height);
-                                            if(mTvRssi != null) mTvRssi.setText(
-                                                    String.valueOf((int)meter)+"."+(((int)(meter*10))%10)+"m");
+                                        if(!isCalculation && !MyBluetoothManager.isPowerOn()){
+                                            recommendClub(calculateDistance(x/width, y/height));
                                         }
                                     }
                                 }
@@ -371,6 +362,27 @@ public class PlayActivity extends Activity {
             }
 
 
+        }
+    }
+
+    private void recommendClub(double meter){
+        if(mTvRssi != null) mTvRssi.setText(
+                String.valueOf((int)meter)+"."+(((int)(meter*10))%10)+"m");
+
+        ArrayList<ClubData> list = MyDBManager.getClubList();
+        if(list != null){
+            int i;
+            for(i=list.size()-1; i>=0; i--){
+                ClubData data = list.get(i);
+                if(meter < data.getMeter()){
+                    if(mTvClub != null)
+                        mTvClub.setText(data.getName());
+                    break;
+                }
+            }
+            if(i==-1){
+                mTvClub.setText((list.get(0)).getName());
+            }
         }
     }
 

@@ -1,24 +1,18 @@
 package com.practice.myapplication.activity;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.SharedPreferences;
 import android.location.Location;
-import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
-import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.ToggleButton;
 
 import com.practice.myapplication.R;
 import com.practice.myapplication.data.ClubData;
@@ -44,10 +38,12 @@ public class StateActivity extends Activity{
     private ListView mListView;
     private CustomAdapter mAdapter;
 
+    private boolean mIsStart = true;
+
     @Override
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_test);
+        setContentView(R.layout.activity_state);
 
         mHandler = new Handler();
 
@@ -62,7 +58,7 @@ public class StateActivity extends Activity{
          * reference : http://kd3302.tistory.com/85
          */
         mAdapter = new CustomAdapter();
-        mListView = (ListView) findViewById(R.id.lv_astat_list);
+        mListView = (ListView)findViewById(R.id.lv_astat_list);
         mListView.setAdapter(mAdapter);
     }
 
@@ -117,19 +113,35 @@ public class StateActivity extends Activity{
                 }
             }
 
-            IBeaconData iBeaconData = MyBluetoothManager.getIBeaconData();
-            if(iBeaconData != null){
-                if(!iBeaconData.equals(prevIBeaconData)){
-                    prevIBeaconData = iBeaconData;
-
-                    if(prevIBeaconData != null){
-                        mHandler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                            }
-                        });
+            final IBeaconData iBeaconData = MyBluetoothManager.getIBeaconData();
+            if(iBeaconData != null && mAdapter != null){
+                if(MyBluetoothManager.isPowerOn()){
+                    if(mIsStart){
+                        mIsStart = false;
+                        if(iBeaconData.getMajor() == 20000 && iBeaconData.getMinor() == 3) { // Hcup
+                            mAdapter.setOnState(3, 2);
+                            mAdapter.setOffState(3, 1);
+                        }
+                        if(iBeaconData.getMajor() == 20000 && iBeaconData.getMinor() == 4) { // Tcup
+                            mAdapter.setOnState(3, 0);
+                            mAdapter.setOffState(2, 3);
+                        }
+                        mAdapter.refresh();
                     }
                 }
+                if(!MyBluetoothManager.isPowerOn()){
+                    if(!mIsStart) mIsStart = true;
+                    if(iBeaconData.getMajor() == 20000 && iBeaconData.getMinor() == 3) { // Hcup
+                        mAdapter.setOnState(3, 3);
+                        mAdapter.setOffState(3, 2);
+                    }
+                    if(iBeaconData.getMajor() == 20000 && iBeaconData.getMinor() == 4) { // Tcup
+                        mAdapter.setOnState(3, 1);
+                        mAdapter.setOffState(3, 0);
+                    }
+                    mAdapter.refresh();
+                }
+                prevIBeaconData = iBeaconData;
             }
         }
     }
@@ -160,58 +172,57 @@ public class StateActivity extends Activity{
             final int pos = position;
             final Context context = parent.getContext();
 
-            TextView leftTextView = null;
-            TextView rightTextView = null;
+            ToggleButton button[] = new ToggleButton[4];
+            TextView textView = null;
             CustomHolder holder = null;
 
             if (convertView == null) {
                 LayoutInflater inflater =
                         (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                convertView = inflater.inflate(R.layout.list_item_club, parent, false);
+                convertView = inflater.inflate(R.layout.list_item_state, parent, false);
 
-                leftTextView = (TextView)convertView.findViewById(R.id.tv_liclub_left);
-                rightTextView = (TextView)convertView.findViewById(R.id.tv_liclub_right);
+                button[0] = (ToggleButton)convertView.findViewById(R.id.tgbtn_lis_1);
+                button[1] = (ToggleButton)convertView.findViewById(R.id.tgbtn_lis_2);
+                button[2] = (ToggleButton)convertView.findViewById(R.id.tgbtn_lis_3);
+                button[3] = (ToggleButton)convertView.findViewById(R.id.tgbtn_lis_4);
+                textView = (TextView)convertView.findViewById(R.id.tv_lis_hole);
 
                 holder = new CustomHolder();
-                holder.mLeftTextView = leftTextView;
-                holder.mRightTextView = rightTextView;
+                for(int i=0; i<holder.mToggleButton.length; i++){
+                    holder.mToggleButton[i] = button[i];
+                }
+                holder.mTextView = textView;
                 convertView.setTag(holder);
             }
             else {
                 holder = (CustomHolder) convertView.getTag();
-                leftTextView = holder.mLeftTextView;
-                rightTextView = holder.mRightTextView;
-            }
-
-            //final ClubData clubData = mList.get(pos);
-            //leftTextView.setText(clubData.getName());
-            //if(clubData.getMeter() != 0){
-            //    rightTextView.setText(String.valueOf(clubData.getMeter()));
-            //}
-            else{
-                rightTextView.setText("미정");
-            }
-
-            convertView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Log.d("convertView", "onClick");
+                for(int i=0; i<holder.mToggleButton.length; i++){
+                    button[i] = holder.mToggleButton[i];
                 }
-            });
+                textView = holder.mTextView;
+            }
+
+            for(int i=0; i<holder.mToggleButton.length; i++){
+                if(button[i] != null) {
+                    button[i].setChecked(mList[pos][i]);
+                    button[i].setEnabled(false);
+                }
+            }
+            textView.setText("Hole "+(pos+1));
 
             return convertView;
         }
 
         private class CustomHolder{
-            TextView mLeftTextView;
-            TextView mRightTextView;
+            ToggleButton mToggleButton[] = new ToggleButton[4];
+            TextView mTextView = null;
         }
 
-        private void setOnState(int hole, int a){
-            mList[hole][a] = true;
+        private void setOnState(int hole, int i){
+            mList[hole-1][i] = true;
         }
-        private void setOffState(int hole, int a){
-            mList[hole][a] = false;
+        private void setOffState(int hole, int i){
+            mList[hole-1][i] = false;
         }
 
         private void refresh(){

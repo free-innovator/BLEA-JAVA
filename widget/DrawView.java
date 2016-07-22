@@ -1,6 +1,7 @@
 package com.practice.myapplication.widget;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -9,6 +10,9 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+
+import com.practice.myapplication.activity.PlayActivity;
+import com.practice.myapplication.activity.StateActivity;
 
 /**
  * Created by hagtfms on 2016-06-27.
@@ -22,6 +26,8 @@ public class DrawView extends View {
 
     private int mWindowWidth, mWindowHeight;
     private float mPosX, mPosY;
+
+    private PlayActivity mContext;
 
     public final static double BLUE_X = 0.45, BLUE_Y = 0.35;
     public final static double RED_X = 0.7, RED_Y = 0.85;
@@ -42,6 +48,7 @@ public class DrawView extends View {
     }
 
     private void init(Context context) {
+        mContext = (PlayActivity)context;
         paint.setStyle(Paint.Style.FILL);
         paint.setStrokeWidth(3);
         paint.setColor(Color.BLACK);
@@ -79,7 +86,6 @@ public class DrawView extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-
         int action = event.getAction();
         if (action == MotionEvent.ACTION_MOVE) {
             initX = event.getX();
@@ -87,6 +93,10 @@ public class DrawView extends View {
         } else if (action == MotionEvent.ACTION_DOWN) {
             initX = event.getX();
             initY = event.getY();
+            if(initX > 900 && initY < 200){
+                mContext.startStateActivity();
+                return true;
+            }
             drawing = true;
         } else if (action == MotionEvent.ACTION_UP) {
             drawing = false;
