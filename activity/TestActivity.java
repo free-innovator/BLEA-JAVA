@@ -126,7 +126,7 @@ public class TestActivity extends Activity {
         MyBluetoothManager.startScanForIBeacon();
         mScanTimer = new Timer(true);
         if(mScanTimer != null){
-            mScanTimer.schedule(new MyTimerTask(), 0, 200);
+            mScanTimer.schedule(new MyTimerTask(), 0, 100);
         }
     }
 

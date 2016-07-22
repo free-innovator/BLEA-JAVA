@@ -9,7 +9,9 @@ import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -42,6 +44,12 @@ public class MyBluetoothManager {
 
     private static Activity curActivity = null;
 
+    private static boolean mPowerOn = false;
+    private static final int POWER_DELAY = 5000;
+
+    private static Handler mPowerHandler = null;
+    private static Runnable mPowerRun = null;
+
     public static boolean initSetting(@NonNull Activity context) {
         final android.bluetooth.BluetoothManager bluetoothManager =
                 (android.bluetooth.BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
@@ -49,6 +57,13 @@ public class MyBluetoothManager {
 
         if(mBluetoothAdapter != null){
             curActivity = context;
+            mPowerRun = new Runnable(){
+                @Override
+                public void run(){
+                    mPowerOn = false;
+                }
+            };
+            mPowerHandler = new Handler();
             return true;
         }
 
@@ -94,7 +109,7 @@ public class MyBluetoothManager {
     }
     public static boolean startScanForIBeacon() {
         if (MyBluetoothManager.isEnabled()) {
-            mBluetoothAdapter.startLeScan(mIBeaconScanCallback);
+            mBluetoothAdapter.startLeScan(null, mIBeaconScanCallback);
             mIsIBeaconScanning = true;
             return true;
         }
@@ -110,6 +125,7 @@ public class MyBluetoothManager {
     public static IBeaconData getIBeaconData(){
         return mIBeaconData;
     }
+    public static boolean isPowerOn() { return mPowerOn; }
 
     /**
      * bytesToHex method
@@ -131,8 +147,7 @@ public class MyBluetoothManager {
         new BluetoothAdapter.LeScanCallback() {
             @Override
             public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
-                Log.d(TAG, "onLeScan : " + device.getAddress());
-                PlayActivity.setDelayZero();
+                //Log.d(TAG, "onLeScan : " + device.getAddress());
 
                 /**
                  * http://blog.conjure.co.uk/2014/08/ibeacons-and-android-parsing-the-uuid-major-and-minor-values/
@@ -173,6 +188,17 @@ public class MyBluetoothManager {
                     /* end copy **/
 
                     mIBeaconData = new IBeaconData(uuid, major, minor, rssi);
+                    Log.i(TAG, "uuid = "+uuid+ " major = "+major+ " minor = "+minor+ " rssi = "+ rssi);
+                    if((major == 20000 && minor == 3) || (major == 20000 && minor == 4)) {
+                        if(!mPowerOn){
+                            mPowerOn = true;
+                            mPowerHandler.postDelayed(mPowerRun, POWER_DELAY);
+                        }
+                        else{
+                            mPowerHandler.removeCallbacks(mPowerRun);
+                            mPowerHandler.postDelayed(mPowerRun, POWER_DELAY);
+                        }
+                    }
                 }
                 else
                     mIBeaconData = null;

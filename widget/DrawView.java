@@ -23,6 +23,9 @@ public class DrawView extends View {
     private int mWindowWidth, mWindowHeight;
     private float mPosX, mPosY;
 
+    public final static double BLUE_X = 0.45, BLUE_Y = 0.35;
+    public final static double RED_X = 0.7, RED_Y = 0.85;
+
     public DrawView(Context context) {
         super(context);
         init(context);
@@ -60,10 +63,10 @@ public class DrawView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         paint.setColor(Color.BLUE);
-        canvas.drawCircle(mWindowWidth*0.3f, mWindowHeight*0.15f, 50, paint);
+        canvas.drawCircle((float)(mWindowWidth*BLUE_X), (float)(mWindowHeight*BLUE_Y), 50, paint);
 
         paint.setColor(Color.RED);
-        canvas.drawCircle(mWindowWidth*0.7f, mWindowHeight*0.85f, 50, paint);
+        canvas.drawCircle((float)(mWindowWidth*RED_X), (float)(mWindowHeight*RED_Y), 50, paint);
 
         paint.setColor(Color.GREEN);
         canvas.drawCircle(mPosX, mPosY, 50, paint);

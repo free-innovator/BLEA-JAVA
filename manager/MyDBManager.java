@@ -45,7 +45,8 @@ public class MyDBManager {
         ArrayList<ClubData> clubList = null;
         if(mDBOpenHelper != null){
             SQLiteDatabase db = mDBOpenHelper.getReadableDatabase();
-            Cursor c = db.rawQuery("select * from "+ClubData.TABLE_NAME, null);
+            Cursor c = db.rawQuery("select * from "+ClubData.TABLE_NAME+
+                    " order by "+ClubData.COLUMN_NAME_METER + " DESC", null);
 
             clubList = new ArrayList<ClubData>();
             if(c.getCount() != 0){
@@ -227,11 +228,17 @@ public class MyDBManager {
                     "primary key(_id)" +
                     ")");
             db.execSQL("insert into "+ClubData.TABLE_NAME+"("+ClubData.COLUMN_NAME_NAME+", "+ClubData.COLUMN_NAME_METER+") values" +
-                    "('1st', null)," +
-                    "('2st', null)," +
-                    "('3st', null)," +
-                    "('4st', null)," +
-                    "('5st', null)");
+                    "('Driver', 200)," +
+                    "('3 Wood', 180)," +
+                    "('4 Iron', 170)," +
+                    "('5 Iron', 160)," +
+                    "('6 Iron', 150)," +
+                    "('7 Iron', 140)," +
+                    "('8 Iron', 130)," +
+                    "('9 Iron', 120)," +
+                    "('PW', 100)," +
+                    "('SW', 70)," +
+                    "('PT', 20)");
 
             db.execSQL("CREATE TABLE "+GroundMapData.TABLE_NAME+" (" +
                     GroundMapData.COLUMN_NAME_STOREID + " integer not null, " +

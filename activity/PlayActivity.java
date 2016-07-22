@@ -39,6 +39,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.practice.myapplication.R;
+import com.practice.myapplication.data.ClubData;
 import com.practice.myapplication.data.GroundData;
 import com.practice.myapplication.data.GroundMapData;
 import com.practice.myapplication.data.IBeaconData;
@@ -49,6 +50,7 @@ import com.practice.myapplication.manager.MyInternetManager;
 import com.practice.myapplication.widget.DrawView;
 
 import java.security.MessageDigest;
+import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ExecutionException;
@@ -58,8 +60,9 @@ import java.util.concurrent.ExecutionException;
  */
 public class PlayActivity extends Activity {
     private final String TAG = "PlayActivity";
-    private final int MIN_ACCURACY = 99999;
-    private final long PERIOD = 200;
+    private final boolean DEB = true;
+    private final int MIN_ACCURACY = 10;
+    private final long PERIOD = 100;
 
     private static int mWidthPixels = 0, mHeightPixels = 0;
 
@@ -67,8 +70,8 @@ public class PlayActivity extends Activity {
     private Timer mScanTimer;
     private static PopupWindow mPopupWindow = null;
 
-    private static long mDelayTime;
-    private boolean mPowerOn = false;
+    private boolean mIsScorePopup = false;
+    private boolean mIsStart = true;
 
     private View mTacTicLayout, mScoreLayout;
 
@@ -78,12 +81,14 @@ public class PlayActivity extends Activity {
 
     private TextView mTvRssi;
     private TextView mTvAcc;
+    private TextView mTvClub;
 
     private static GroundData mGroundData;
     private GroundMapData mGroundMapData;
 
     private double mTcupLaditude, mTcupLongitude;
     private double mHcupLaditude, mHcupLongitude;
+    private double mDistance;
 
     private double s = 0, t = 0, u = 0, v = 0; // for calculate crood
 
@@ -122,6 +127,7 @@ public class PlayActivity extends Activity {
         mScoreLayout = getLayoutInflater().inflate(R.layout.popup_score, null);
         mTvRssi = (TextView)findViewById(R.id.tv_aplay_rssi);
         mTvAcc = (TextView)findViewById(R.id.tv_aplay_acc);
+        mTvClub = (TextView)findViewById(R.id.tv_aplay_club);
 
         final SharedPreferences prefs =
                 getSharedPreferences(TestActivity.STR_PREFERENCES_NAME, Context.MODE_PRIVATE);
@@ -131,14 +137,35 @@ public class PlayActivity extends Activity {
             mHcupLaditude = prefs.getFloat(TestActivity.STR_HCUP_LOC_LADITUDE, 0.0f);
             mHcupLongitude = prefs.getFloat(TestActivity.STR_HCUP_LOC_LONGITUDE, 0.0f);
 
+            /*
+                근사오차 제외... 즉, 두 좌표의 점이 매우 근사해야 오차가 적어짐
+                경도 x 위도 y라 한다면
+
+                반지름 r = 63781000m
+                y 0~180, x 0~180이라 가정하면
+
+                위도 1도당 2*pi*r*cos(abs(y-90))/360
+                경도 1도당 2*pi*r/360
+
+                y가 -90~90이면 90을 빼지 않아도 됨.
+             */
             if(dmDrawView != null){
                 int w = dmDrawView.getWindowWidth(), h = dmDrawView.getWindowHeight();
                 double a = mHcupLongitude, b = mHcupLaditude, c = mTcupLongitude, d = mTcupLaditude;
                 double div = a*d-b*c;
-                s = (0.3*w*d-0.7*w*b)/div;
-                t = (0.15*h*d - 0.85*h*b)/div;
-                u = (0.7*w*a-0.3*w*c)/div;
-                v = (0.85*h*a - 0.15*h*c)/div;
+                s = (DrawView.BLUE_X*w*d-DrawView.RED_X*w*b)/div;
+                t = (DrawView.BLUE_Y*h*d - DrawView.RED_Y*h*b)/div;
+                u = (DrawView.RED_X*w*a-DrawView.BLUE_X*w*c)/div;
+                v = (DrawView.RED_Y*h*a - DrawView.BLUE_Y*h*c)/div;
+
+                double x1 = a, x2 = c, y1 = b, y2 = d;
+                double r = 6378100.0; // meter
+                double longiPer = 2*Math.PI*r*Math.cos(mHcupLaditude)/360.0;
+                double latiPer = 2*Math.PI*r/360.0;
+
+                mDistance = Math.sqrt(Math.pow((x1-x2)*longiPer, 2.0) + Math.pow((y1-y2)*latiPer, 2.0));
+                if(DEB) Log.d(TAG, "longiPer = "+longiPer + " latiPer = " + latiPer);
+                if(DEB) Log.d(TAG, "mDistance = " + mDistance);
             }
         }
 
@@ -195,7 +222,6 @@ public class PlayActivity extends Activity {
         mScanTimer = new Timer(true);
         if(mScanTimer != null){
             mScanTimer.schedule(new MyTimerTask(), 0, PERIOD);
-            mPowerOn = false;
         }
     }
 
@@ -213,8 +239,6 @@ public class PlayActivity extends Activity {
         }
         MyGPSManager.setListener(false);
         MyBluetoothManager.stopScanForIBeacon();
-        mPowerOn = false;
-        setDelayZero();
     }
 
     @Override
@@ -236,8 +260,6 @@ public class PlayActivity extends Activity {
         }
         MyGPSManager.setListener(false);
         MyBluetoothManager.stopScanForIBeacon();
-        mPowerOn = false;
-        setDelayZero();
         super.finish();
     }
 
@@ -245,8 +267,72 @@ public class PlayActivity extends Activity {
     private  class MyTimerTask extends TimerTask {
         private Location prevLocation = null;
         private IBeaconData prevIBeaconData = null;
+        private boolean isCalculation = false;
         @Override
         public void run(){
+            final IBeaconData iBeaconData = MyBluetoothManager.getIBeaconData();
+            if(iBeaconData != null){
+                if(MyBluetoothManager.isPowerOn()){
+                    if(mIsStart){
+                        mIsStart = false;
+                        if(iBeaconData.getMajor() == 20000 && iBeaconData.getMinor() == 3) { // Hcup
+                            mIsScorePopup = true;
+                        }
+                        if(iBeaconData.getMajor() == 20000 && iBeaconData.getMinor() == 4) { // Tcup
+                            Log.d(TAG, "popup TacTic");
+                            mHandler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    showTacTic();
+                                }
+                            });
+                        }
+                    }
+
+                    isCalculation = false;
+                    if(!iBeaconData.equals(prevIBeaconData)){
+                        if(iBeaconData.getMajor() == 20000 && iBeaconData.getMinor() == 3) { // Hcup
+                            mHandler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    double meter = calculateAccuracy(-77, (double)iBeaconData.getRssi());
+                                    if(mTvRssi != null) mTvRssi.setText(
+                                            String.valueOf((int)meter)+"."+(((int)(meter*10))%10)+"m");
+
+                                    ArrayList<ClubData> list = MyDBManager.getClubList();
+
+                                    int i;
+                                    for(i=list.size()-1; i>=0; i--){
+                                        ClubData data = list.get(i);
+                                        if(meter < data.getMeter()){
+                                            mTvClub.setText(data.getName());
+                                            break;
+                                        }
+                                    }
+                                    if(i==-1){
+                                        mTvClub.setText((list.get(0)).getName());
+                                    }
+                                    isCalculation = true;
+                                }
+                            });
+                        }
+                    }
+                }
+                if(!MyBluetoothManager.isPowerOn()){
+                    if(!mIsStart) mIsStart = true;
+                    if(mIsScorePopup) {
+                        mIsScorePopup = false;
+                        mHandler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                showScore();
+                            }
+                        });
+                    }
+                }
+                prevIBeaconData = iBeaconData;
+            }
+
             Location location = MyGPSManager.getLocation();
             if(location != null){
                 if(!location.equals(prevLocation)){
@@ -266,6 +352,16 @@ public class PlayActivity extends Activity {
                                         dmDrawView.setPos((float)x, (float)y);
                                         dmDrawView.invalidate();
                                         Log.d(TAG, "draw "+ x +", " + y);
+
+                                        DisplayMetrics dm = getApplicationContext().getResources().getDisplayMetrics();
+                                        int width = dm.widthPixels;
+                                        int height = dm.heightPixels;
+
+                                        if(!isCalculation){
+                                            double meter = calculateDistance(x/width, y/height);
+                                            if(mTvRssi != null) mTvRssi.setText(
+                                                    String.valueOf((int)meter)+"."+(((int)(meter*10))%10)+"m");
+                                        }
                                     }
                                 }
                             }
@@ -274,61 +370,32 @@ public class PlayActivity extends Activity {
                 }
             }
 
-            IBeaconData iBeaconData = MyBluetoothManager.getIBeaconData();
-            if(iBeaconData != null){
-                if(!iBeaconData.equals(prevIBeaconData)){
-                    if(!mPowerOn){
-                        mPowerOn = true;
-                        if(iBeaconData.getMajor() == 20000 && iBeaconData.getMinor() == 4) {
-                            Log.d(TAG, "popup TacTic");
-                            mHandler.post(new Runnable() {
-                                @Override
-                                public void run() {
-                                    showTacTic();
-                                }
-                            });
-                        }
-                    }
 
-                    prevIBeaconData = iBeaconData;
-
-                    if(prevIBeaconData != null){
-                        mHandler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                if(mTvRssi != null) mTvRssi.setText(String.valueOf(prevIBeaconData.getRssi()));
-                            }
-                        });
-                    }
-                }
-                else{
-                    Log.i(TAG, "mDelayTime = " + mDelayTime);
-                    if(mPowerOn){
-                        mDelayTime += PERIOD;
-                        if(mDelayTime >= 5000) {
-                            mPowerOn = false;
-                            mDelayTime = 0;
-                            if (iBeaconData.getMajor() == 20000 && iBeaconData.getMinor() == 3) {
-                                mHandler.post(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        showScore();
-                                    }
-                                });
-                            }
-                        }
-                    }
-                }
-            }
         }
     }
 
-    /*
-     * 제대로 만드려면 callback함수로 MyBluetoothManager로 넘겨줄 것.
-     */
-    public static void setDelayZero(){
-        //mDelayTime = 0;
+    private double calculateAccuracy(int txPower, double rssi) {
+        if (rssi == 0) {
+            return -1.0; // if we cannot determine accuracy, return -1.
+        }
+
+        double ratio = rssi * 1.0 / txPower;
+        if (ratio < 1.0) {
+            return Math.pow(ratio, 10);
+        } else {
+            double accuracy = (0.89976) * Math.pow(ratio, 7.7095) + 0.111;
+            return accuracy;
+        }
     }
+
+    private double calculateDistance(double x, double y){
+
+        double z = Math.abs(DrawView.BLUE_X - DrawView.RED_X);
+        double v = Math.abs(DrawView.BLUE_X - x);
+
+        return mDistance / z * v;
+    }
+
 
     private void showTacTic(){
         if(mTacTicLayout != null){
@@ -337,25 +404,19 @@ public class PlayActivity extends Activity {
                 mPopupWindow = new PopupWindow(mTacTicLayout, (int)(mWidthPixels*0.9), (int)(mHeightPixels*0.5), true);
                 mPopupWindow.showAtLocation(mTacTicLayout, Gravity.CENTER, 0, 0);
 
-                mTacTicLayout.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        if(mPopupWindow != null) mPopupWindow.dismiss();
-                        mPopupWindow.showAtLocation(mTacTicLayout, Gravity.CENTER, 0, 0);
-                    }
-                });
-
-
-                if(mGroundData != null){
-                    TextView textView = (TextView)mTacTicLayout.findViewById(R.id.tv_ptac_tactic);
-                    textView.setText(mGroundData.getTactic());
-                }
                 mTacTicLayout.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        mPopupWindow.dismiss();
+                        if(mPopupWindow != null) {
+                            mPopupWindow.dismiss();
+                            mPopupWindow = null;
+                        }
                     }
                 });
+                if(mGroundData != null) {
+                    TextView textView = (TextView) mTacTicLayout.findViewById(R.id.tv_ptac_tactic);
+                    textView.setText(mGroundData.getTactic());
+                }
             }
         }
     }
@@ -367,13 +428,14 @@ public class PlayActivity extends Activity {
                 mPopupWindow = new PopupWindow(mScoreLayout, (int)(mWidthPixels*0.9), (int)(mHeightPixels*0.5), true);
                 mPopupWindow.showAtLocation(mScoreLayout, Gravity.CENTER, 0, 0);
 
-                mTacTicLayout.post(new Runnable() {
+                mScoreLayout.post(new Runnable() {
                     @Override
                     public void run() {
                         if(mPopupWindow != null) mPopupWindow.dismiss();
                         mPopupWindow.showAtLocation(mScoreLayout, Gravity.CENTER, 0, 0);
                     }
                 });
+
 
                 final RadioGroup topGroup = (RadioGroup)mScoreLayout.findViewById(R.id.rg_psco_top);
                 final RadioGroup bottomGroup = (RadioGroup)mScoreLayout.findViewById(R.id.rg_psco_bottom);
@@ -449,6 +511,10 @@ public class PlayActivity extends Activity {
 
                             if(input != 0){
                                 MyDBManager.setScore(input);
+                                if(mPopupWindow != null) {
+                                    mPopupWindow.dismiss();
+                                    mPopupWindow = null;
+                                }
                             }
                         }catch (Exception ignore){
                         }
